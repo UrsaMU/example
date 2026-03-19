@@ -387,7 +387,7 @@ export const roll_dice = new DynamicStructuredTool({
     const dice = rolls.join(", ");
     const modStr = mod !== 0 ? ` + ${mod} mod` : "";
     const prefix = label ? `${label}: ` : "";
-    return `${prefix}[${dice}]${modStr} = ${sum}`;
+    return Promise.resolve(`${prefix}[${dice}]${modStr} = ${sum}`);
   },
 });
 
