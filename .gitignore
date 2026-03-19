@@ -2,6 +2,7 @@
 .deno/
 
 # Local config & data (never commit secrets or live DB files)
+docs/
 config/config.json
 data/
 
