@@ -1,10 +1,7 @@
 import { addCmd } from "ursamu/app";
 import { actions, periods } from "./db.ts";
 import { DOWNTIME_TYPE_LABELS, DOWNTIME_TYPES, isValidType } from "./logic.ts";
-import type {
-  IDowntimeAction,
-  IDowntimePeriod,
-} from "./schema.ts";
+import type { IDowntimeAction, IDowntimePeriod } from "./schema.ts";
 
 const H = "%ch";
 const N = "%cn";

@@ -203,22 +203,22 @@ The GM has access to three layers of context at all times:
 
 ## Quick Reference
 
-| What you want to do               | Command                        |
-| --------------------------------- | ------------------------------ |
-| Check GM status                   | `+gm`                          |
-| Add current room to watch list    | `+gm/watch`                    |
-| Remove room from watch list       | `+gm/unwatch`                  |
-| Open a session                    | `+gm/session/open <label>`     |
-| Close a session                   | `+gm/session/close`            |
-| Ask the oracle a question         | `+gm/oracle <question>`        |
-| Oracle with probability shade     | `+gm/oracle/<prob> <question>` |
-| Submit a move roll                | `+gm/move <move>=<total>`      |
-| Force round adjudication          | `+gm/go`                       |
-| Broadcast a scene narration draft | `+gm/scene/publish <text>`     |
+| What you want to do               | Command                          |
+| --------------------------------- | -------------------------------- |
+| Check GM status                   | `+gm`                            |
+| Add current room to watch list    | `+gm/watch`                      |
+| Remove room from watch list       | `+gm/unwatch`                    |
+| Open a session                    | `+gm/session/open <label>`       |
+| Close a session                   | `+gm/session/close`              |
+| Ask the oracle a question         | `+gm/oracle <question>`          |
+| Oracle with probability shade     | `+gm/oracle/<prob> <question>`   |
+| Submit a move roll                | `+gm/move <move>=<total>`        |
+| Force round adjudication          | `+gm/go`                         |
+| Broadcast a scene narration draft | `+gm/scene/publish <text>`       |
 | Set GM mode                       | `+gm/config/mode <auto\|hybrid>` |
-| Set chaos level                   | `+gm/config/chaos <1-9>`       |
-| Set Gemini model                  | `+gm/config/model <model>`     |
-| Set Google API key                | `+gm/config/apikey <key>`      |
-| Ignore a player                   | `+gm/ignore <playerId>`        |
-| Unignore a player                 | `+gm/unignore <playerId>`      |
-| Force cache reload                | `+gm/reload`                   |
+| Set chaos level                   | `+gm/config/chaos <1-9>`         |
+| Set Gemini model                  | `+gm/config/model <model>`       |
+| Set Google API key                | `+gm/config/apikey <key>`        |
+| Ignore a player                   | `+gm/ignore <playerId>`          |
+| Unignore a player                 | `+gm/unignore <playerId>`        |
+| Force cache reload                | `+gm/reload`                     |
