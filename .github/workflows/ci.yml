@@ -28,4 +28,4 @@ jobs:
         run: deno check src/main.ts
 
       - name: Test
-        run: deno test --allow-env --allow-read --allow-write tests/gm_schema.test.ts tests/gm_logic.test.ts tests/gm_urban_shadows.test.ts tests/gm_compressor.test.ts
+        run: deno test --allow-env --allow-read --allow-write --unstable-kv tests/gm_schema.test.ts tests/gm_logic.test.ts tests/gm_urban_shadows.test.ts tests/gm_compressor.test.ts
