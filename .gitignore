@@ -1,0 +1,20 @@
+# Deno cache
+.deno/
+
+# Local config & data (never commit secrets or live DB files)
+config/config.json
+data/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor
+.DS_Store
+.vscode/settings.json
+*.swp
+*.swo
+
+# Logs
+*.log
