@@ -3,8 +3,7 @@
 // Wires up commands, LangGraph graphs, hook context, and callback bridges.
 
 import type { IPlugin } from "ursamu/plugin";
-import { dbojs } from "ursamu";
-import { send as wsSend } from "ursamu/broadcast";
+import { dbojs, mu } from "ursamu";
 import "./commands.ts";
 
 import { createModel, loadConfig } from "./providers.ts";
@@ -68,14 +67,18 @@ const gmPlugin: IPlugin = {
       return map;
     }
 
-    function page(playerId: string, message: string): void {
-      wsSend([playerId], `[GM Page] ${message}`);
+    function page(_playerId: string, message: string): void {
+      mu()
+        .then((game) => game.broadcast(`[GM Page] ${message}`))
+        .catch(() => {});
     }
 
     async function broadcast(roomId: string, message: string): Promise<void> {
       const playerMap = await getPlayersInRoom(roomId);
-      const ids = [...playerMap.keys()];
-      if (ids.length) wsSend(ids, message);
+      if (playerMap.size) {
+        const game = await mu();
+        game.broadcast(message);
+      }
     }
 
     function getSessionId(): string | null {
