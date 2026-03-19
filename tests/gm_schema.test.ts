@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import {
   DEFAULT_CONFIG,
   DEFAULT_PERSONA,

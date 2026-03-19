@@ -215,7 +215,7 @@ The GM has access to three layers of context at all times:
 | Submit a move roll                | `+gm/move <move>=<total>`      |
 | Force round adjudication          | `+gm/go`                       |
 | Broadcast a scene narration draft | `+gm/scene/publish <text>`     |
-| Set GM mode                       | `+gm/config/mode <auto         |
+| Set GM mode                       | `+gm/config/mode <auto\|hybrid>` |
 | Set chaos level                   | `+gm/config/chaos <1-9>`       |
 | Set Gemini model                  | `+gm/config/model <model>`     |
 | Set Google API key                | `+gm/config/apikey <key>`      |

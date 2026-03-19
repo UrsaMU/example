@@ -1,4 +1,4 @@
-import { assertEquals, assertExists } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import {
   buildRoundSummary,
   isTimedOut,

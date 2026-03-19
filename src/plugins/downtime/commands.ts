@@ -2,7 +2,6 @@ import { addCmd } from "ursamu/app";
 import { actions, periods } from "./db.ts";
 import { DOWNTIME_TYPE_LABELS, DOWNTIME_TYPES, isValidType } from "./logic.ts";
 import type {
-  DowntimeActionType,
   IDowntimeAction,
   IDowntimePeriod,
 } from "./schema.ts";

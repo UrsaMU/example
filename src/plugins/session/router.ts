@@ -1,11 +1,9 @@
-import type { ISession, ISessionAnswers, QuestionAnswer } from "./schema.ts";
+import type { ISession, ISessionAnswers } from "./schema.ts";
 import type { ICharSheet } from "../playbooks/schema.ts";
 import {
-  blankAnswers,
   buildQuestionsForPlaybook,
   computeSessionXP,
   createAnswerRecord,
-  scoreAnswers,
 } from "./logic.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

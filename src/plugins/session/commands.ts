@@ -3,7 +3,6 @@ import { mu } from "ursamu";
 import { sheets } from "../playbooks/db.ts";
 import { sessAnswers, sessions } from "./db.ts";
 import {
-  allAnswered,
   buildQuestionsForPlaybook,
   computeSessionXP,
   createAnswerRecord,

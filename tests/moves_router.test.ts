@@ -7,7 +7,7 @@ import type { ICharSheet } from "../src/plugins/playbooks/schema.ts";
 
 function makeStore(sheet: ICharSheet | null): SheetStore {
   return {
-    queryOne: async () => sheet,
+    queryOne: () => Promise.resolve(sheet),
   };
 }
 

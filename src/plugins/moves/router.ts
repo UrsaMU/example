@@ -4,7 +4,6 @@ import {
   extractStat,
   findMove,
   getSheetMoves,
-  resolveMove,
 } from "./logic.ts";
 import { rollDice } from "../dice/logic.ts";
 import type { StatName } from "../dice/logic.ts";
