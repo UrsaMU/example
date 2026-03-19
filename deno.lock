@@ -71,7 +71,8 @@
         "npm:bcryptjs",
         "npm:discordeno",
         "npm:lodash",
-        "npm:quickjs-emscripten"
+        "npm:quickjs-emscripten",
+        "npm:sucrase"
       ]
     },
     "@zaubrik/djwt@3.0.2": {
