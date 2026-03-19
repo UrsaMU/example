@@ -1,22 +1,22 @@
 import { addCmd } from "ursamu/app";
 import { sheets } from "../playbooks/db.ts";
-import { findMove, getSheetMoves, resolveMove, extractStat } from "./logic.ts";
+import { extractStat, findMove, getSheetMoves, resolveMove } from "./logic.ts";
 import { PLAYBOOKS } from "../playbooks/data.ts";
 import type { ICharSheet } from "../playbooks/schema.ts";
 
 // ─── Colour helpers ───────────────────────────────────────────────────────────
 
-const H   = "%ch";
-const N   = "%cn";
-const G   = "%cg";
-const Y   = "%cy";
-const R   = "%cr";
+const H = "%ch";
+const N = "%cn";
+const G = "%cg";
+const Y = "%cy";
+const R = "%cr";
 const DIM = "%cx";
 
 const OUTCOME_COLOR: Record<string, string> = {
   strong: G,
-  weak:   Y,
-  miss:   R,
+  weak: Y,
+  miss: R,
 };
 
 function bar(width = 60): string {
@@ -34,10 +34,16 @@ function firstSentence(text: string): string {
 }
 
 /** Fetch the current user's sheet; send an error and return null if missing. */
-async function mySheet(u: { me: { id: string }; send(m: string): void }): Promise<ICharSheet | null> {
-  const sheet = await sheets.queryOne({ id: u.me.id } as Parameters<typeof sheets.queryOne>[0]);
+async function mySheet(
+  u: { me: { id: string }; send(m: string): void },
+): Promise<ICharSheet | null> {
+  const sheet = await sheets.queryOne(
+    { id: u.me.id } as Parameters<typeof sheets.queryOne>[0],
+  );
   if (!sheet) {
-    u.send(`${H}+move:${N}  No character sheet found. You need an approved character to use moves.`);
+    u.send(
+      `${H}+move:${N}  No character sheet found. You need an approved character to use moves.`,
+    );
     return null;
   }
   return sheet as ICharSheet;
@@ -76,7 +82,9 @@ addCmd({
     }
 
     lines.push(bar());
-    lines.push(`  ${DIM}+moves/all [playbook]  to browse all moves  |  help moves  for help${N}`);
+    lines.push(
+      `  ${DIM}+moves/all [playbook]  to browse all moves  |  help moves  for help${N}`,
+    );
     lines.push(bar());
     u.send(lines.join("\n"));
   },
@@ -90,7 +98,8 @@ addCmd({
 addCmd({
   name: "+moves/all",
   category: "Urban Shadows",
-  help: "+moves/all [<playbook>]  —  Browse all moves, optionally filtered to one playbook.",
+  help:
+    "+moves/all [<playbook>]  —  Browse all moves, optionally filtered to one playbook.",
   pattern: /^\+moves\/all(?:\s+(.+))?$/i,
   exec: (u) => {
     const query = ((u.cmd.args[0] ?? "") as string).trim().toLowerCase();
@@ -112,14 +121,13 @@ addCmd({
     }
 
     // Find matching playbook by ID or partial name
-    const pb =
-      PLAYBOOKS.find((p) => p.id === query) ??
+    const pb = PLAYBOOKS.find((p) => p.id === query) ??
       PLAYBOOKS.find((p) => p.name.toLowerCase().includes(query));
 
     if (!pb) {
       u.send(
         `${H}+moves/all:${N}  No playbook found matching '${query}'. ` +
-        `Type ${H}+moves/all${N} to list all playbooks.`
+          `Type ${H}+moves/all${N} to list all playbooks.`,
       );
       return;
     }
@@ -157,7 +165,9 @@ addCmd({
     const move = findMove(query);
 
     if (!move) {
-      u.send(`${H}+move/ref:${N}  No move found matching '${query}'. Try a partial name or the move ID.`);
+      u.send(
+        `${H}+move/ref:${N}  No move found matching '${query}'. Try a partial name or the move ID.`,
+      );
       return;
     }
 
@@ -190,18 +200,19 @@ addCmd({
 addCmd({
   name: "+move",
   category: "Urban Shadows",
-  help: "+move <name or id>[+/-<bonus>]  —  Trigger a move and roll its stat. See +moves for your list.",
+  help:
+    "+move <name or id>[+/-<bonus>]  —  Trigger a move and roll its stat. See +moves for your list.",
   pattern: /^\+move\s+(.+?)(?:\s+([+-]\s*\d+))?$/i,
   exec: async (u) => {
-    const query    = (u.cmd.args[0] ?? "").trim();
+    const query = (u.cmd.args[0] ?? "").trim();
     const bonusStr = ((u.cmd.args[1] ?? "") as string).replace(/\s/g, "");
-    const bonus    = bonusStr ? parseInt(bonusStr, 10) : 0;
+    const bonus = bonusStr ? parseInt(bonusStr, 10) : 0;
 
     const move = findMove(query);
     if (!move) {
       u.send(
         `${H}+move:${N}  No move found matching '${query}'. ` +
-        `Use ${H}+moves${N} to see your moves or ${H}+move/ref <name>${N} to search all.`
+          `Use ${H}+moves${N} to see your moves or ${H}+move/ref <name>${N} to search all.`,
       );
       return;
     }
@@ -219,7 +230,9 @@ addCmd({
       ].join("\n"));
 
       u.here.broadcast(
-        `${H}${u.me.name ?? u.me.id}${N} invokes ${H}${move.name}${N}  ${DIM}[passive]${N}`,
+        `${H}${
+          u.me.name ?? u.me.id
+        }${N} invokes ${H}${move.name}${N}  ${DIM}[passive]${N}`,
         { origin: u.me.id },
       );
       return;
@@ -228,21 +241,29 @@ addCmd({
     // ── Rolling move ──────────────────────────────────────────────────────────
 
     // Read stat from sheet; default 0 if no sheet (staff/test use)
-    const sheet = await sheets.queryOne({ id: u.me.id } as Parameters<typeof sheets.queryOne>[0]);
-    const statValue: number = sheet ? ((sheet as ICharSheet).stats[stat] ?? 0) : 0;
+    const sheet = await sheets.queryOne(
+      { id: u.me.id } as Parameters<typeof sheets.queryOne>[0],
+    );
+    const statValue: number = sheet
+      ? ((sheet as ICharSheet).stats[stat] ?? 0)
+      : 0;
 
     const result = resolveMove(move, statValue, bonus);
     if (!result.roll) return; // impossible branch (stat is non-null)
 
     const { roll } = result;
-    const col          = OUTCOME_COLOR[roll.outcome];
-    const outcomeLabel = `${col}${H}${roll.outcomeLabel} — ${roll.outcome.charAt(0).toUpperCase() + roll.outcome.slice(1)} Hit${N}`;
+    const col = OUTCOME_COLOR[roll.outcome];
+    const outcomeLabel = `${col}${H}${roll.outcomeLabel} — ${
+      roll.outcome.charAt(0).toUpperCase() + roll.outcome.slice(1)
+    } Hit${N}`;
     const bonusDisplay = bonus !== 0 ? ` ${bonus >= 0 ? "+" : ""}${bonus}` : "";
 
     u.send([
       bar(),
       `  ${H}${move.name}${N}  ${DIM}(${move.playbookName})${N}  — rolls ${H}${stat}${N}`,
-      `  [${roll.dice[0]}][${roll.dice[1]}] ${sign(roll.stat)}${bonusDisplay} = ${H}${roll.total}${N}  ->  ${outcomeLabel}`,
+      `  [${roll.dice[0]}][${roll.dice[1]}] ${
+        sign(roll.stat)
+      }${bonusDisplay} = ${H}${roll.total}${N}  ->  ${outcomeLabel}`,
       bar(),
       `  ${move.description}`,
       bar(),
@@ -250,8 +271,10 @@ addCmd({
 
     u.here.broadcast(
       `${H}${u.me.name ?? u.me.id}${N} triggers ${H}${move.name}${N}: ` +
-      `[${roll.dice[0]}][${roll.dice[1]}] ${sign(roll.stat)}${bonusDisplay} = ` +
-      `${col}${H}${roll.total} (${roll.outcomeLabel})${N}`,
+        `[${roll.dice[0]}][${roll.dice[1]}] ${
+          sign(roll.stat)
+        }${bonusDisplay} = ` +
+        `${col}${H}${roll.total} (${roll.outcomeLabel})${N}`,
       { origin: u.me.id },
     );
   },

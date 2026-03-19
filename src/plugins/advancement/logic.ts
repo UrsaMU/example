@@ -1,9 +1,14 @@
 // ─── Advancement Logic (pure, no I/O) ────────────────────────────────────────
 
-import type { ICharSheet, IPlaybook, IPlaybookAdvance, IStats } from "../playbooks/schema.ts";
+import type {
+  ICharSheet,
+  IPlaybook,
+  IPlaybookAdvance,
+  IStats,
+} from "../playbooks/schema.ts";
 
 export const XP_PER_ADVANCE = 5;
-export const STAT_MAX = 2;       // stat cap after chargen boosts
+export const STAT_MAX = 2; // stat cap after chargen boosts
 export const CIRCLE_RATING_MAX = 3; // circle rating cap
 
 // ─── XP ───────────────────────────────────────────────────────────────────────

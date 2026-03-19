@@ -6,14 +6,14 @@ narrative and (if applicable) mechanical effects via other commands.
 
 ## Downtime Action Types
 
-| Type            | Meaning                                |
-|-----------------|----------------------------------------|
-| `recover`       | Rest and heal harm                     |
-| `indulge`       | Indulge your vice to clear corruption  |
-| `consolidate`   | Shore up circle status or relationships|
-| `work-contact`  | Work a contact for favors or info      |
-| `pursue-lead`   | Follow a lead or investigate something |
-| `other`         | Anything else (describe in full)       |
+| Type           | Meaning                                 |
+| -------------- | --------------------------------------- |
+| `recover`      | Rest and heal harm                      |
+| `indulge`      | Indulge your vice to clear corruption   |
+| `consolidate`  | Shore up circle status or relationships |
+| `work-contact` | Work a contact for favors or info       |
+| `pursue-lead`  | Follow a lead or investigate something  |
+| `other`        | Anything else (describe in full)        |
 
 Use `+downtime/types` to see the full list with descriptions in-game.
 
@@ -41,8 +41,8 @@ Submit a downtime action. The type must be one of the valid types above.
 
 ### +downtime/view \<id\>
 
-View the full details of a submitted action, including MC resolution if set.
-The ID is the short hex prefix shown in listings.
+View the full details of a submitted action, including MC resolution if set. The
+ID is the short hex prefix shown in listings.
 
     +downtime/view a3b2f1
 
@@ -79,13 +79,13 @@ Close the current downtime period (warns about unresolved actions).
 
 ## Quick Reference
 
-| What you want to do              | Command                                   |
-|----------------------------------|-------------------------------------------|
-| See current downtime period      | `+downtime`                               |
-| List action types                | `+downtime/types`                         |
-| Submit an action                 | `+downtime/submit <type>=<description>`   |
-| View an action's full details    | `+downtime/view <id>`                     |
-| Open a period [staff]            | `+downtime/open [label]`                  |
-| List all actions [staff]         | `+downtime/list`                          |
-| Resolve an action [staff]        | `+downtime/resolve <id>=<resolution>`     |
-| Close period [staff]             | `+downtime/close`                         |
+| What you want to do           | Command                                 |
+| ----------------------------- | --------------------------------------- |
+| See current downtime period   | `+downtime`                             |
+| List action types             | `+downtime/types`                       |
+| Submit an action              | `+downtime/submit <type>=<description>` |
+| View an action's full details | `+downtime/view <id>`                   |
+| Open a period [staff]         | `+downtime/open [label]`                |
+| List all actions [staff]      | `+downtime/list`                        |
+| Resolve an action [staff]     | `+downtime/resolve <id>=<resolution>`   |
+| Close period [staff]          | `+downtime/close`                       |

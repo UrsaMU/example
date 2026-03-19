@@ -1,10 +1,18 @@
 import { assertEquals } from "@std/assert";
 import {
-  markHarm, healHarm, setArmor, markedHarmCount, isIncapacitated,
-  markCorruption, takeCorruptionAdvance, clearCorruptionMarks,
-  HARM_MAX, ARMOR_MAX, CORRUPTION_MARKS_MAX,
+  ARMOR_MAX,
+  clearCorruptionMarks,
+  CORRUPTION_MARKS_MAX,
+  HARM_MAX,
+  healHarm,
+  isIncapacitated,
+  markCorruption,
+  markedHarmCount,
+  markHarm,
+  setArmor,
+  takeCorruptionAdvance,
 } from "../src/plugins/tracker/logic.ts";
-import type { IHarm, ICorruption } from "../src/plugins/playbooks/schema.ts";
+import type { ICorruption, IHarm } from "../src/plugins/playbooks/schema.ts";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -17,7 +25,9 @@ function fullHarm(): IHarm {
 }
 
 function partialHarm(marked: number, armor = 0): IHarm {
-  const boxes = Array(5).fill(false).map((_, i) => i < marked) as IHarm["boxes"];
+  const boxes = Array(5).fill(false).map((_, i) =>
+    i < marked
+  ) as IHarm["boxes"];
   return { boxes, armor };
 }
 
@@ -157,7 +167,10 @@ Deno.test("isIncapacitated: true on full harm", () => {
 // ─── markCorruption ───────────────────────────────────────────────────────────
 
 Deno.test("markCorruption: increments marks", () => {
-  const { corruption, advanceTriggered } = markCorruption({ marks: 0, advances: [] });
+  const { corruption, advanceTriggered } = markCorruption({
+    marks: 0,
+    advances: [],
+  });
   assertEquals(corruption.marks, 1);
   assertEquals(advanceTriggered, false);
 });
@@ -168,13 +181,19 @@ Deno.test("markCorruption: no advance before max", () => {
 });
 
 Deno.test(`markCorruption: triggers advance at ${CORRUPTION_MARKS_MAX}`, () => {
-  const { corruption, advanceTriggered } = markCorruption({ marks: CORRUPTION_MARKS_MAX - 1, advances: [] });
+  const { corruption, advanceTriggered } = markCorruption({
+    marks: CORRUPTION_MARKS_MAX - 1,
+    advances: [],
+  });
   assertEquals(advanceTriggered, true);
   assertEquals(corruption.marks, CORRUPTION_MARKS_MAX); // stays at max until advance is taken
 });
 
 Deno.test("markCorruption: preserves existing advances on reset", () => {
-  const { corruption } = markCorruption({ marks: CORRUPTION_MARKS_MAX - 1, advances: ["Dark Power"] });
+  const { corruption } = markCorruption({
+    marks: CORRUPTION_MARKS_MAX - 1,
+    advances: ["Dark Power"],
+  });
   assertEquals(corruption.advances, ["Dark Power"]);
 });
 
@@ -207,12 +226,18 @@ Deno.test("markCorruption: sequence 1→2→3→4→trigger", () => {
 // ─── takeCorruptionAdvance ────────────────────────────────────────────────────
 
 Deno.test("takeCorruptionAdvance: adds advance name", () => {
-  const result = takeCorruptionAdvance({ marks: 5, advances: [] }, "Dark Power");
+  const result = takeCorruptionAdvance(
+    { marks: 5, advances: [] },
+    "Dark Power",
+  );
   assertEquals(result.advances, ["Dark Power"]);
 });
 
 Deno.test("takeCorruptionAdvance: resets marks to 0", () => {
-  const result = takeCorruptionAdvance({ marks: 5, advances: [] }, "Void Touch");
+  const result = takeCorruptionAdvance(
+    { marks: 5, advances: [] },
+    "Void Touch",
+  );
   assertEquals(result.marks, 0);
 });
 
@@ -225,7 +250,10 @@ Deno.test("takeCorruptionAdvance: appends to existing advances", () => {
 });
 
 Deno.test("takeCorruptionAdvance: trims advance name", () => {
-  const result = takeCorruptionAdvance({ marks: 0, advances: [] }, "  Corrupted Soul  ");
+  const result = takeCorruptionAdvance(
+    { marks: 0, advances: [] },
+    "  Corrupted Soul  ",
+  );
   assertEquals(result.advances[0], "Corrupted Soul");
 });
 
@@ -252,4 +280,5 @@ Deno.test("clearCorruptionMarks: no-op on already zero marks", () => {
 
 Deno.test("HARM_MAX is 5", () => assertEquals(HARM_MAX, 5));
 Deno.test("ARMOR_MAX is 3", () => assertEquals(ARMOR_MAX, 3));
-Deno.test("CORRUPTION_MARKS_MAX is 5", () => assertEquals(CORRUPTION_MARKS_MAX, 5));
+Deno.test("CORRUPTION_MARKS_MAX is 5", () =>
+  assertEquals(CORRUPTION_MARKS_MAX, 5));

@@ -1,11 +1,11 @@
 import type { ICharSheet } from "../playbooks/schema.ts";
 import {
-  markHarm,
-  healHarm,
-  setArmor,
-  markCorruption,
-  takeCorruptionAdvance,
   ARMOR_MAX,
+  healHarm,
+  markCorruption,
+  markHarm,
+  setArmor,
+  takeCorruptionAdvance,
 } from "./logic.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -17,18 +17,29 @@ function ok(data: unknown, status = 200): Response {
 }
 
 function err(msg: string, status = 400): Response {
-  return new Response(JSON.stringify({ error: msg }), { status, headers: JSON_H });
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: JSON_H,
+  });
 }
 
 // ─── Injectable store interfaces ─────────────────────────────────────────────
 
 export interface SheetStore {
-  queryOne(q: Partial<ICharSheet>): Promise<ICharSheet | null | undefined | false>;
-  modify(q: Partial<ICharSheet>, op: string, update: Partial<ICharSheet>): Promise<void>;
+  queryOne(
+    q: Partial<ICharSheet>,
+  ): Promise<ICharSheet | null | undefined | false>;
+  modify(
+    q: Partial<ICharSheet>,
+    op: string,
+    update: Partial<ICharSheet>,
+  ): Promise<void>;
 }
 
 export interface PlayerStore {
-  queryOne(q: Record<string, unknown>): Promise<{ flags?: string } | null | undefined | false>;
+  queryOne(
+    q: Record<string, unknown>,
+  ): Promise<{ flags?: string } | null | undefined | false>;
 }
 
 // ─── Staff check ──────────────────────────────────────────────────────────────
@@ -83,12 +94,19 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
     if (path === "/api/v1/tracker/harm/mark" && method === "POST") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved to track harm", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved to track harm", 403);
+      }
 
       const updated = markHarm(sheet.harm);
-      if (!updated) return err("All harm boxes are already marked (incapacitated)", 409);
+      if (!updated) {
+        return err("All harm boxes are already marked (incapacitated)", 409);
+      }
 
-      await sheetDb.modify({ id: userId }, "$set", { harm: updated, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        harm: updated,
+        updatedAt: Date.now(),
+      });
       return ok({ harm: updated });
     }
 
@@ -97,17 +115,24 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
     if (path === "/api/v1/tracker/harm/heal" && method === "POST") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved to track harm", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved to track harm", 403);
+      }
 
       let body: Record<string, unknown> = {};
-      try { body = await req.json(); } catch { /* count is optional */ }
+      try {
+        body = await req.json();
+      } catch { /* count is optional */ }
 
       const count = typeof body.count === "number" && body.count > 0
         ? Math.round(body.count)
         : 1;
 
       const updated = healHarm(sheet.harm, count);
-      await sheetDb.modify({ id: userId }, "$set", { harm: updated, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        harm: updated,
+        updatedAt: Date.now(),
+      });
       return ok({ harm: updated });
     }
 
@@ -116,17 +141,26 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
     if (path === "/api/v1/tracker/armor" && method === "PATCH") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved to set armor", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved to set armor", 403);
+      }
 
       let body: Record<string, unknown>;
-      try { body = await req.json(); } catch { return err("Invalid JSON"); }
+      try {
+        body = await req.json();
+      } catch {
+        return err("Invalid JSON");
+      }
 
       if (typeof body.armor !== "number") {
         return err(`armor must be a number (0–${ARMOR_MAX})`);
       }
 
       const updated = setArmor(sheet.harm, body.armor);
-      await sheetDb.modify({ id: userId }, "$set", { harm: updated, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        harm: updated,
+        updatedAt: Date.now(),
+      });
       return ok({ harm: updated });
     }
 
@@ -135,10 +169,15 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
     if (path === "/api/v1/tracker/corruption/mark" && method === "POST") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved to track corruption", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved to track corruption", 403);
+      }
 
       const { corruption, advanceTriggered } = markCorruption(sheet.corruption);
-      await sheetDb.modify({ id: userId }, "$set", { corruption, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        corruption,
+        updatedAt: Date.now(),
+      });
       return ok({ corruption, advanceTriggered });
     }
 
@@ -147,17 +186,29 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
     if (path === "/api/v1/tracker/corruption/advance" && method === "POST") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved to take advances", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved to take advances", 403);
+      }
 
       let body: Record<string, unknown>;
-      try { body = await req.json(); } catch { return err("Invalid JSON"); }
+      try {
+        body = await req.json();
+      } catch {
+        return err("Invalid JSON");
+      }
 
       if (typeof body.advance !== "string" || !body.advance.trim()) {
         return err("advance name is required");
       }
 
-      const corruption = takeCorruptionAdvance(sheet.corruption, body.advance as string);
-      await sheetDb.modify({ id: userId }, "$set", { corruption, updatedAt: Date.now() });
+      const corruption = takeCorruptionAdvance(
+        sheet.corruption,
+        body.advance as string,
+      );
+      await sheetDb.modify({ id: userId }, "$set", {
+        corruption,
+        updatedAt: Date.now(),
+      });
       return ok({ corruption });
     }
 
@@ -173,7 +224,10 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
         }
         const sheet = await sheetDb.queryOne({ id: targetId });
         if (!sheet) return err("Sheet not found", 404);
-        return ok({ harm: (sheet as ICharSheet).harm, corruption: (sheet as ICharSheet).corruption });
+        return ok({
+          harm: (sheet as ICharSheet).harm,
+          corruption: (sheet as ICharSheet).corruption,
+        });
       }
 
       if (method === "PATCH") {
@@ -182,7 +236,11 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
         if (!sheet) return err("Sheet not found", 404);
 
         let body: Record<string, unknown>;
-        try { body = await req.json(); } catch { return err("Invalid JSON"); }
+        try {
+          body = await req.json();
+        } catch {
+          return err("Invalid JSON");
+        }
 
         const update: Partial<ICharSheet> = { updatedAt: Date.now() };
 
@@ -193,7 +251,9 @@ export function makeTrackerRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
           update.corruption = body.corruption as ICharSheet["corruption"];
         }
 
-        if (Object.keys(update).length === 1) return err("No valid fields to update");
+        if (Object.keys(update).length === 1) {
+          return err("No valid fields to update");
+        }
 
         await sheetDb.modify({ id: targetId }, "$set", update);
         const updated = await sheetDb.queryOne({ id: targetId });

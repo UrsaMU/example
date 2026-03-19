@@ -11,7 +11,7 @@
 //
 // Import path will become "ursamu/jobs" once the PR lands in the package.
 
-import { jobHooks, jobs, getNextJobNumber } from "ursamu/jobs";
+import { getNextJobNumber, jobHooks, jobs } from "ursamu/jobs";
 import { dbojs } from "ursamu";
 import { sheets } from "./db.ts";
 import { getPlaybook } from "./data.ts";
@@ -25,9 +25,19 @@ export async function fileChargenJob(sheet: ICharSheet): Promise<IJob> {
   const number = await getNextJobNumber();
 
   const description = [
-    `Character application for **${sheet.name}** (${pb?.name ?? sheet.playbookId}).`,
+    `Character application for **${sheet.name}** (${
+      pb?.name ?? sheet.playbookId
+    }).`,
     ``,
-    `**Stats:** Blood ${sheet.stats.blood >= 0 ? "+" : ""}${sheet.stats.blood}  Heart ${sheet.stats.heart >= 0 ? "+" : ""}${sheet.stats.heart}  Mind ${sheet.stats.mind >= 0 ? "+" : ""}${sheet.stats.mind}  Spirit ${sheet.stats.spirit >= 0 ? "+" : ""}${sheet.stats.spirit}`,
+    `**Stats:** Blood ${
+      sheet.stats.blood >= 0 ? "+" : ""
+    }${sheet.stats.blood}  Heart ${
+      sheet.stats.heart >= 0 ? "+" : ""
+    }${sheet.stats.heart}  Mind ${
+      sheet.stats.mind >= 0 ? "+" : ""
+    }${sheet.stats.mind}  Spirit ${
+      sheet.stats.spirit >= 0 ? "+" : ""
+    }${sheet.stats.spirit}`,
     `**Home Circle:** ${pb?.circle ?? "unknown"}`,
     `**Moves:** ${sheet.selectedMoves.length} selected`,
     `**Debts:** ${sheet.debts.length} recorded`,
@@ -64,7 +74,9 @@ export async function fileChargenJob(sheet: ICharSheet): Promise<IJob> {
 jobHooks.on("job:resolved", async (job) => {
   if (job.category !== "app") return;
 
-  const sheet = await sheets.queryOne({ playerId: job.submittedBy } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
+  const sheet = await sheets.queryOne(
+    { playerId: job.submittedBy } as Parameters<typeof sheets.queryOne>[0],
+  ) as ICharSheet | null;
   if (!sheet || sheet.status === "approved") return;
 
   await sheets.modify(
@@ -98,7 +110,9 @@ jobHooks.on("job:resolved", async (job) => {
     );
   }
 
-  console.log(`[chargen] Auto-approved sheet for ${sheet.name} (job #${job.number} resolved)`);
+  console.log(
+    `[chargen] Auto-approved sheet for ${sheet.name} (job #${job.number} resolved)`,
+  );
 });
 
 // ─── Hook: job closed → auto-reject sheet ────────────────────────────────────
@@ -106,8 +120,12 @@ jobHooks.on("job:resolved", async (job) => {
 jobHooks.on("job:closed", async (job) => {
   if (job.category !== "app") return;
 
-  const sheet = await sheets.queryOne({ playerId: job.submittedBy } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
-  if (!sheet || sheet.status === "approved" || sheet.status === "rejected") return;
+  const sheet = await sheets.queryOne(
+    { playerId: job.submittedBy } as Parameters<typeof sheets.queryOne>[0],
+  ) as ICharSheet | null;
+  if (!sheet || sheet.status === "approved" || sheet.status === "rejected") {
+    return;
+  }
 
   // Use the last non-staff-only comment as the rejection reason, if any
   const publicComments = job.comments.filter((c) => !c.staffOnly);
@@ -121,5 +139,7 @@ jobHooks.on("job:closed", async (job) => {
     { status: "rejected", rejectionReason: reason, updatedAt: Date.now() },
   );
 
-  console.log(`[chargen] Auto-rejected sheet for ${sheet.name} (job #${job.number} closed)`);
+  console.log(
+    `[chargen] Auto-rejected sheet for ${sheet.name} (job #${job.number} closed)`,
+  );
 });

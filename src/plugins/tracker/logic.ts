@@ -1,6 +1,6 @@
 // ─── Harm & Corruption Logic (pure, no I/O) ───────────────────────────────────
 
-import type { IHarm, ICorruption } from "../playbooks/schema.ts";
+import type { ICorruption, IHarm } from "../playbooks/schema.ts";
 
 // ─── Harm ─────────────────────────────────────────────────────────────────────
 

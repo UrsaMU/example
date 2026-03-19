@@ -1,9 +1,10 @@
-import type { IFront, ClockSize } from "./schema.ts";
+import type { ClockSize, IFront } from "./schema.ts";
 
 /** Render a clock as a filled/empty bar. */
 export function clockBar(ticks: number, size: number): string {
   const filled = Math.min(ticks, size);
-  return "[" + "#".repeat(filled) + ".".repeat(size - filled) + "]" + ` ${filled}/${size}`;
+  return "[" + "#".repeat(filled) + ".".repeat(size - filled) + "]" +
+    ` ${filled}/${size}`;
 }
 
 /** True if the clock has reached doom. */

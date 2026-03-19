@@ -5,7 +5,11 @@ import type { ICharSheet } from "../src/plugins/playbooks/schema.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeRequest(body: unknown, method = "POST", path = "/api/v1/roll"): Request {
+function makeRequest(
+  body: unknown,
+  method = "POST",
+  path = "/api/v1/roll",
+): Request {
   return new Request(`http://localhost${path}`, {
     method,
     headers: { "Content-Type": "application/json" },
@@ -147,7 +151,10 @@ Deno.test("POST /api/v1/roll: no sheet → stat defaults to 0, sheetFound=false"
 
 Deno.test("POST /api/v1/roll: bonus is added to total", async () => {
   const handler = makeDiceRouter(makeStore(null)); // stat=0
-  const res = await handler(makeRequest({ stat: "blood", bonus: 2 }), "player1");
+  const res = await handler(
+    makeRequest({ stat: "blood", bonus: 2 }),
+    "player1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.bonus, 2);
@@ -157,7 +164,10 @@ Deno.test("POST /api/v1/roll: bonus is added to total", async () => {
 
 Deno.test("POST /api/v1/roll: bonus of 0 is fine", async () => {
   const handler = makeDiceRouter(makeStore(null));
-  const res = await handler(makeRequest({ stat: "spirit", bonus: 0 }), "player1");
+  const res = await handler(
+    makeRequest({ stat: "spirit", bonus: 0 }),
+    "player1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.bonus, 0);
@@ -165,7 +175,10 @@ Deno.test("POST /api/v1/roll: bonus of 0 is fine", async () => {
 
 Deno.test("POST /api/v1/roll: non-numeric bonus is ignored (defaults to 0)", async () => {
   const handler = makeDiceRouter(makeStore(null));
-  const res = await handler(makeRequest({ stat: "spirit", bonus: "big" }), "player1");
+  const res = await handler(
+    makeRequest({ stat: "spirit", bonus: "big" }),
+    "player1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.bonus, 0);
@@ -173,7 +186,10 @@ Deno.test("POST /api/v1/roll: non-numeric bonus is ignored (defaults to 0)", asy
 
 Deno.test("POST /api/v1/roll: fractional bonus is rounded", async () => {
   const handler = makeDiceRouter(makeStore(null));
-  const res = await handler(makeRequest({ stat: "spirit", bonus: 1.7 }), "player1");
+  const res = await handler(
+    makeRequest({ stat: "spirit", bonus: 1.7 }),
+    "player1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.bonus, 2);
@@ -186,14 +202,14 @@ Deno.test("POST /api/v1/roll: response has all expected fields", async () => {
   const res = await handler(makeRequest({ stat: "heart" }), "player1");
   assertEquals(res.status, 200);
   const body = await json(res);
-  assertEquals(typeof body.statName,     "string");
-  assertEquals(typeof body.sheetFound,   "boolean");
-  assertEquals(typeof body.stat,         "number");
-  assertEquals(typeof body.bonus,        "number");
-  assertEquals(typeof body.total,        "number");
-  assertEquals(typeof body.outcome,      "string");
+  assertEquals(typeof body.statName, "string");
+  assertEquals(typeof body.sheetFound, "boolean");
+  assertEquals(typeof body.stat, "number");
+  assertEquals(typeof body.bonus, "number");
+  assertEquals(typeof body.total, "number");
+  assertEquals(typeof body.outcome, "string");
   assertEquals(typeof body.outcomeLabel, "string");
-  assertEquals(Array.isArray(body.dice),  true);
+  assertEquals(Array.isArray(body.dice), true);
   assertEquals((body.dice as number[]).length, 2);
 });
 
@@ -203,8 +219,16 @@ Deno.test("POST /api/v1/roll: dice values are 1-6", async () => {
     const res = await handler(makeRequest({ stat: "blood" }), "player1");
     const body = await json(res);
     const dice = body.dice as number[];
-    assertEquals(dice[0] >= 1 && dice[0] <= 6, true, `d1=${dice[0]} out of range`);
-    assertEquals(dice[1] >= 1 && dice[1] <= 6, true, `d2=${dice[1]} out of range`);
+    assertEquals(
+      dice[0] >= 1 && dice[0] <= 6,
+      true,
+      `d1=${dice[0]} out of range`,
+    );
+    assertEquals(
+      dice[1] >= 1 && dice[1] <= 6,
+      true,
+      `d2=${dice[1]} out of range`,
+    );
   }
 });
 
@@ -223,8 +247,8 @@ Deno.test("POST /api/v1/roll: outcomeLabel matches outcome", async () => {
   for (let i = 0; i < 20; i++) {
     const res = await handler(makeRequest({ stat: "blood" }), "player1");
     const body = await json(res);
-    if (body.outcome === "miss")   assertEquals(body.outcomeLabel, "6-");
-    if (body.outcome === "weak")   assertEquals(body.outcomeLabel, "7-9");
+    if (body.outcome === "miss") assertEquals(body.outcomeLabel, "6-");
+    if (body.outcome === "weak") assertEquals(body.outcomeLabel, "7-9");
     if (body.outcome === "strong") assertEquals(body.outcomeLabel, "10+");
   }
 });
@@ -232,10 +256,14 @@ Deno.test("POST /api/v1/roll: outcomeLabel matches outcome", async () => {
 Deno.test("POST /api/v1/roll: total = dice[0] + dice[1] + stat + bonus", async () => {
   const handler = makeDiceRouter(makeStore(APPROVED_SHEET));
   for (let i = 0; i < 20; i++) {
-    const res = await handler(makeRequest({ stat: "blood", bonus: 1 }), "player1");
+    const res = await handler(
+      makeRequest({ stat: "blood", bonus: 1 }),
+      "player1",
+    );
     const body = await json(res);
     const dice = body.dice as number[];
-    const expected = dice[0] + dice[1] + (body.stat as number) + (body.bonus as number);
+    const expected = dice[0] + dice[1] + (body.stat as number) +
+      (body.bonus as number);
     assertEquals(body.total, expected);
   }
 });

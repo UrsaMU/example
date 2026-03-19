@@ -1,11 +1,14 @@
 // ─── Circle Logic (pure, no I/O) ─────────────────────────────────────────────
 
-import type { ICircleValues, CircleName } from "../playbooks/schema.ts";
-import { CIRCLE_STATUS_MIN, CIRCLE_STATUS_MAX } from "./schema.ts";
+import type { CircleName, ICircleValues } from "../playbooks/schema.ts";
+import { CIRCLE_STATUS_MAX, CIRCLE_STATUS_MIN } from "./schema.ts";
 
 /** Clamp a circle status value to the allowed range. */
 export function clampStatus(value: number): number {
-  return Math.max(CIRCLE_STATUS_MIN, Math.min(CIRCLE_STATUS_MAX, Math.round(value)));
+  return Math.max(
+    CIRCLE_STATUS_MIN,
+    Math.min(CIRCLE_STATUS_MAX, Math.round(value)),
+  );
 }
 
 /**

@@ -24,22 +24,22 @@ negotiating power, favors, and survival.
 
 ## Quick Reference
 
-| What you want to do        | Command                  |
-|----------------------------|--------------------------|
-| See your character sheet   | `+chargen`               |
-| Trigger a move             | `+move <name>`           |
-| Read a move's full text    | `+move/ref <name>`       |
-| Roll a stat                | `+roll <stat>`           |
-| Roll with an explicit value| `+roll/free <stat>=<n>`  |
-| Mark harm                  | `+harm/mark`             |
-| Mark XP                    | `+xp/mark`               |
-| View debts                 | `+debts`                 |
-| View circles               | `+circles`               |
-| See active characters      | `+who`                   |
-| Read current scene         | `+scene`                 |
-| Submit downtime action     | `+downtime/submit <type>=<desc>` |
-| List organizations         | `+org/list`              |
-| View your jobs             | `+jobs`                  |
-| List NPCs [staff]          | `+npc/list`              |
-| List fronts [staff]        | `+front/list`            |
-| Broadcast GM scene draft [staff] | `+gm/scene/publish <text>` |
+| What you want to do              | Command                          |
+| -------------------------------- | -------------------------------- |
+| See your character sheet         | `+chargen`                       |
+| Trigger a move                   | `+move <name>`                   |
+| Read a move's full text          | `+move/ref <name>`               |
+| Roll a stat                      | `+roll <stat>`                   |
+| Roll with an explicit value      | `+roll/free <stat>=<n>`          |
+| Mark harm                        | `+harm/mark`                     |
+| Mark XP                          | `+xp/mark`                       |
+| View debts                       | `+debts`                         |
+| View circles                     | `+circles`                       |
+| See active characters            | `+who`                           |
+| Read current scene               | `+scene`                         |
+| Submit downtime action           | `+downtime/submit <type>=<desc>` |
+| List organizations               | `+org/list`                      |
+| View your jobs                   | `+jobs`                          |
+| List NPCs [staff]                | `+npc/list`                      |
+| List fronts [staff]              | `+front/list`                    |
+| Broadcast GM scene draft [staff] | `+gm/scene/publish <text>`       |

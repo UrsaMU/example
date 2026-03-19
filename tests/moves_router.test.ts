@@ -63,7 +63,7 @@ Deno.test("GET /api/v1/moves: returns all moves", async () => {
 
 Deno.test("GET /api/v1/moves: each entry includes stat and isPassive fields", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res  = await handler(req("GET", "/api/v1/moves"), null);
+  const res = await handler(req("GET", "/api/v1/moves"), null);
   const data = await res.json() as Array<Record<string, unknown>>;
   for (const m of data) {
     assertExists(m.id);
@@ -76,7 +76,7 @@ Deno.test("GET /api/v1/moves: each entry includes stat and isPassive fields", as
 
 Deno.test("GET /api/v1/moves?playbook=aware: filtered to aware only", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res  = await handler(req("GET", "/api/v1/moves?playbook=aware"), null);
+  const res = await handler(req("GET", "/api/v1/moves?playbook=aware"), null);
   assertEquals(res.status, 200);
   const data = await res.json() as Array<Record<string, unknown>>;
   assertEquals(data.length > 0, true);
@@ -85,7 +85,7 @@ Deno.test("GET /api/v1/moves?playbook=aware: filtered to aware only", async () =
 
 Deno.test("GET /api/v1/moves?playbook=hunter: filtered to hunter only", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res  = await handler(req("GET", "/api/v1/moves?playbook=hunter"), null);
+  const res = await handler(req("GET", "/api/v1/moves?playbook=hunter"), null);
   const data = await res.json() as Array<Record<string, unknown>>;
   assertEquals(data.every((m) => m.playbookId === "hunter"), true);
 });
@@ -106,7 +106,7 @@ Deno.test("GET /api/v1/moves/my: no sheet → 404", async () => {
 
 Deno.test("GET /api/v1/moves/my: returns only sheet's selected moves", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res  = await handler(req("GET", "/api/v1/moves/my"), "u1");
+  const res = await handler(req("GET", "/api/v1/moves/my"), "u1");
   assertEquals(res.status, 200);
   const data = await res.json() as Array<Record<string, unknown>>;
   assertEquals(data.length, 3);
@@ -118,7 +118,7 @@ Deno.test("GET /api/v1/moves/my: returns only sheet's selected moves", async () 
 
 Deno.test("GET /api/v1/moves/my: cross-playbook move shows correct source", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res  = await handler(req("GET", "/api/v1/moves/my"), "u1");
+  const res = await handler(req("GET", "/api/v1/moves/my"), "u1");
   const data = await res.json() as Array<Record<string, unknown>>;
   const deadly = data.find((m) => m.id === "hunter-deadly");
   assertExists(deadly);
@@ -129,7 +129,10 @@ Deno.test("GET /api/v1/moves/my: cross-playbook move shows correct source", asyn
 
 Deno.test("GET /api/v1/moves/:id: found by exact ID", async () => {
   const handler = makeMovesRouter(makeStore(null));
-  const res  = await handler(req("GET", "/api/v1/moves/aware-i-know-a-guy"), null);
+  const res = await handler(
+    req("GET", "/api/v1/moves/aware-i-know-a-guy"),
+    null,
+  );
   assertEquals(res.status, 200);
   const data = await json(res);
   assertEquals(data.id, "aware-i-know-a-guy");
@@ -139,7 +142,7 @@ Deno.test("GET /api/v1/moves/:id: found by exact ID", async () => {
 
 Deno.test("GET /api/v1/moves/:id: passive move shows isPassive=true and stat=null", async () => {
   const handler = makeMovesRouter(makeStore(null));
-  const res  = await handler(req("GET", "/api/v1/moves/hunter-deadly"), null);
+  const res = await handler(req("GET", "/api/v1/moves/hunter-deadly"), null);
   assertEquals(res.status, 200);
   const data = await json(res);
   assertEquals(data.isPassive, true);
@@ -156,7 +159,10 @@ Deno.test("GET /api/v1/moves/:id: not found → 404", async () => {
 
 Deno.test("POST /api/v1/moves/resolve: no auth → 401", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res = await handler(req("POST", "/api/v1/moves/resolve", { moveId: "aware-i-know-a-guy" }), null);
+  const res = await handler(
+    req("POST", "/api/v1/moves/resolve", { moveId: "aware-i-know-a-guy" }),
+    null,
+  );
   assertEquals(res.status, 401);
 });
 
@@ -181,13 +187,19 @@ Deno.test("POST /api/v1/moves/resolve: invalid JSON → 400", async () => {
 
 Deno.test("POST /api/v1/moves/resolve: unknown moveId → 404", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res = await handler(req("POST", "/api/v1/moves/resolve", { moveId: "bogus-id" }), "u1");
+  const res = await handler(
+    req("POST", "/api/v1/moves/resolve", { moveId: "bogus-id" }),
+    "u1",
+  );
   assertEquals(res.status, 404);
 });
 
 Deno.test("POST /api/v1/moves/resolve: rolling move returns roll data", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res  = await handler(req("POST", "/api/v1/moves/resolve", { moveId: "aware-i-know-a-guy" }), "u1");
+  const res = await handler(
+    req("POST", "/api/v1/moves/resolve", { moveId: "aware-i-know-a-guy" }),
+    "u1",
+  );
   assertEquals(res.status, 200);
   const data = await json(res);
   assertEquals(data.stat, "heart");
@@ -196,12 +208,18 @@ Deno.test("POST /api/v1/moves/resolve: rolling move returns roll data", async ()
   assertExists(data.roll);
   const roll = data.roll as Record<string, unknown>;
   assertEquals(typeof roll.total, "number");
-  assertEquals(["miss", "weak", "strong"].includes(roll.outcome as string), true);
+  assertEquals(
+    ["miss", "weak", "strong"].includes(roll.outcome as string),
+    true,
+  );
 });
 
 Deno.test("POST /api/v1/moves/resolve: passive move returns null roll", async () => {
   const handler = makeMovesRouter(makeStore(SHEET));
-  const res  = await handler(req("POST", "/api/v1/moves/resolve", { moveId: "hunter-deadly" }), "u1");
+  const res = await handler(
+    req("POST", "/api/v1/moves/resolve", { moveId: "hunter-deadly" }),
+    "u1",
+  );
   assertEquals(res.status, 200);
   const data = await json(res);
   assertEquals(data.isPassive, true);
@@ -213,7 +231,13 @@ Deno.test("POST /api/v1/moves/resolve: bonus is forwarded to roll", async () => 
   const handler = makeMovesRouter(makeStore(SHEET));
   // Run 20 times; with +2 bonus the minimum total is 2+2+1+2 = 7 (weak at worst)
   for (let i = 0; i < 20; i++) {
-    const res  = await handler(req("POST", "/api/v1/moves/resolve", { moveId: "aware-i-know-a-guy", bonus: 5 }), "u1");
+    const res = await handler(
+      req("POST", "/api/v1/moves/resolve", {
+        moveId: "aware-i-know-a-guy",
+        bonus: 5,
+      }),
+      "u1",
+    );
     const data = await json(res);
     const roll = data.roll as Record<string, unknown>;
     assertEquals(roll.bonus, 5);
@@ -222,7 +246,10 @@ Deno.test("POST /api/v1/moves/resolve: bonus is forwarded to roll", async () => 
 
 Deno.test("POST /api/v1/moves/resolve: no sheet defaults stat to 0", async () => {
   const handler = makeMovesRouter(makeStore(null));
-  const res  = await handler(req("POST", "/api/v1/moves/resolve", { moveId: "aware-i-know-a-guy" }), "u1");
+  const res = await handler(
+    req("POST", "/api/v1/moves/resolve", { moveId: "aware-i-know-a-guy" }),
+    "u1",
+  );
   assertEquals(res.status, 200);
   const data = await json(res);
   assertEquals(data.statValue, 0);

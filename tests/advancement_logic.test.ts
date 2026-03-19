@@ -1,17 +1,44 @@
 import { assertEquals } from "@std/assert";
 import {
-  markXP, canTakeAdvance, timesTaken, regularAdvanceCount,
-  validateAdvance, applyAdvance,
-  XP_PER_ADVANCE, STAT_MAX,
+  applyAdvance,
+  canTakeAdvance,
+  markXP,
+  regularAdvanceCount,
+  STAT_MAX,
+  timesTaken,
+  validateAdvance,
+  XP_PER_ADVANCE,
 } from "../src/plugins/advancement/logic.ts";
-import type { IPlaybook, IPlaybookAdvance, ICharSheet } from "../src/plugins/playbooks/schema.ts";
+import type {
+  ICharSheet,
+  IPlaybook,
+  IPlaybookAdvance,
+} from "../src/plugins/playbooks/schema.ts";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const STAT_ADV: IPlaybookAdvance = { id: "stat-blood", label: "+1 Blood", statBoost: "blood", maxTimes: 2 };
-const MOVE_ADV: IPlaybookAdvance = { id: "move-own-1", label: "New move", maxTimes: 1 };
-const MAJOR_ADV: IPlaybookAdvance = { id: "retire", label: "Retire", major: true, maxTimes: 1 };
-const REPEAT_ADV: IPlaybookAdvance = { id: "clear-corruption", label: "Clear mark", maxTimes: 3 };
+const STAT_ADV: IPlaybookAdvance = {
+  id: "stat-blood",
+  label: "+1 Blood",
+  statBoost: "blood",
+  maxTimes: 2,
+};
+const MOVE_ADV: IPlaybookAdvance = {
+  id: "move-own-1",
+  label: "New move",
+  maxTimes: 1,
+};
+const MAJOR_ADV: IPlaybookAdvance = {
+  id: "retire",
+  label: "Retire",
+  major: true,
+  maxTimes: 1,
+};
+const REPEAT_ADV: IPlaybookAdvance = {
+  id: "clear-corruption",
+  label: "Clear mark",
+  maxTimes: 3,
+};
 
 function mockPlaybook(advances: IPlaybookAdvance[] = []): IPlaybook {
   return {
@@ -35,7 +62,11 @@ function mockPlaybook(advances: IPlaybookAdvance[] = []): IPlaybook {
   };
 }
 
-function sheet(overrides: Partial<{ xp: number; takenAdvances: string[]; stats: ICharSheet["stats"] }> = {}) {
+function sheet(
+  overrides: Partial<
+    { xp: number; takenAdvances: string[]; stats: ICharSheet["stats"] }
+  > = {},
+) {
   return {
     xp: 5,
     takenAdvances: [] as string[],
@@ -49,14 +80,19 @@ function sheet(overrides: Partial<{ xp: number; takenAdvances: string[]; stats: 
 
 Deno.test("markXP: increments by 1", () => assertEquals(markXP(0), 1));
 Deno.test("markXP: increments from partial", () => assertEquals(markXP(3), 4));
-Deno.test("markXP: does not exceed XP_PER_ADVANCE", () => assertEquals(markXP(5), 5));
-Deno.test("markXP: clamps at max when already at max", () => assertEquals(markXP(XP_PER_ADVANCE), XP_PER_ADVANCE));
+Deno.test("markXP: does not exceed XP_PER_ADVANCE", () =>
+  assertEquals(markXP(5), 5));
+Deno.test("markXP: clamps at max when already at max", () =>
+  assertEquals(markXP(XP_PER_ADVANCE), XP_PER_ADVANCE));
 
 // ─── canTakeAdvance ───────────────────────────────────────────────────────────
 
-Deno.test("canTakeAdvance: false below threshold", () => assertEquals(canTakeAdvance(4), false));
-Deno.test("canTakeAdvance: true at XP_PER_ADVANCE", () => assertEquals(canTakeAdvance(XP_PER_ADVANCE), true));
-Deno.test("canTakeAdvance: false at 0", () => assertEquals(canTakeAdvance(0), false));
+Deno.test("canTakeAdvance: false below threshold", () =>
+  assertEquals(canTakeAdvance(4), false));
+Deno.test("canTakeAdvance: true at XP_PER_ADVANCE", () =>
+  assertEquals(canTakeAdvance(XP_PER_ADVANCE), true));
+Deno.test("canTakeAdvance: false at 0", () =>
+  assertEquals(canTakeAdvance(0), false));
 
 // ─── timesTaken ───────────────────────────────────────────────────────────────
 
@@ -65,11 +101,21 @@ Deno.test("timesTaken: 0 when not taken", () => {
 });
 
 Deno.test("timesTaken: counts correctly", () => {
-  assertEquals(timesTaken(["stat-blood", "move-own-1", "stat-blood"], "stat-blood", STAT_ADV), 2);
+  assertEquals(
+    timesTaken(
+      ["stat-blood", "move-own-1", "stat-blood"],
+      "stat-blood",
+      STAT_ADV,
+    ),
+    2,
+  );
 });
 
 Deno.test("timesTaken: does not count other advances", () => {
-  assertEquals(timesTaken(["move-own-1", "move-own-1"], "stat-blood", STAT_ADV), 0);
+  assertEquals(
+    timesTaken(["move-own-1", "move-own-1"], "stat-blood", STAT_ADV),
+    0,
+  );
 });
 
 // ─── regularAdvanceCount ──────────────────────────────────────────────────────
@@ -80,7 +126,10 @@ Deno.test("regularAdvanceCount: 0 with no advances", () => {
 
 Deno.test("regularAdvanceCount: counts non-major advances only", () => {
   const pb = mockPlaybook([STAT_ADV, MOVE_ADV, MAJOR_ADV]);
-  assertEquals(regularAdvanceCount(["stat-blood", "move-own-1", "retire"], pb), 2);
+  assertEquals(
+    regularAdvanceCount(["stat-blood", "move-own-1", "retire"], pb),
+    2,
+  );
 });
 
 Deno.test("regularAdvanceCount: major advances not counted", () => {
@@ -102,23 +151,36 @@ Deno.test("validateAdvance: null (valid) when all conditions met", () => {
 
 Deno.test("validateAdvance: not-enough-xp when xp < 5", () => {
   const pb = mockPlaybook([MOVE_ADV]);
-  assertEquals(validateAdvance(sheet({ xp: 4 }), "move-own-1", pb), "not-enough-xp");
+  assertEquals(
+    validateAdvance(sheet({ xp: 4 }), "move-own-1", pb),
+    "not-enough-xp",
+  );
 });
 
 Deno.test("validateAdvance: unknown-advance for bad id", () => {
   const pb = mockPlaybook([MOVE_ADV]);
-  assertEquals(validateAdvance(sheet(), "no-such-advance", pb), "unknown-advance");
+  assertEquals(
+    validateAdvance(sheet(), "no-such-advance", pb),
+    "unknown-advance",
+  );
 });
 
 Deno.test("validateAdvance: advance-maxed when maxTimes reached", () => {
   const pb = mockPlaybook([MOVE_ADV]);
-  assertEquals(validateAdvance(sheet({ takenAdvances: ["move-own-1"] }), "move-own-1", pb), "advance-maxed");
+  assertEquals(
+    validateAdvance(sheet({ takenAdvances: ["move-own-1"] }), "move-own-1", pb),
+    "advance-maxed",
+  );
 });
 
 Deno.test("validateAdvance: advance-maxed for stat advance taken maxTimes", () => {
   const pb = mockPlaybook([STAT_ADV]);
   assertEquals(
-    validateAdvance(sheet({ takenAdvances: ["stat-blood", "stat-blood"] }), "stat-blood", pb),
+    validateAdvance(
+      sheet({ takenAdvances: ["stat-blood", "stat-blood"] }),
+      "stat-blood",
+      pb,
+    ),
     "advance-maxed",
   );
 });
@@ -126,10 +188,27 @@ Deno.test("validateAdvance: advance-maxed for stat advance taken maxTimes", () =
 Deno.test("validateAdvance: repeatable advance can be taken up to maxTimes", () => {
   const pb = mockPlaybook([REPEAT_ADV]);
   // Taken twice, max is 3 — should be valid
-  assertEquals(validateAdvance(sheet({ takenAdvances: ["clear-corruption", "clear-corruption"] }), "clear-corruption", pb), null);
+  assertEquals(
+    validateAdvance(
+      sheet({ takenAdvances: ["clear-corruption", "clear-corruption"] }),
+      "clear-corruption",
+      pb,
+    ),
+    null,
+  );
   // Taken 3 times → maxed
   assertEquals(
-    validateAdvance(sheet({ takenAdvances: ["clear-corruption", "clear-corruption", "clear-corruption"] }), "clear-corruption", pb),
+    validateAdvance(
+      sheet({
+        takenAdvances: [
+          "clear-corruption",
+          "clear-corruption",
+          "clear-corruption",
+        ],
+      }),
+      "clear-corruption",
+      pb,
+    ),
     "advance-maxed",
   );
 });
@@ -142,8 +221,11 @@ Deno.test("validateAdvance: major-advance-locked when <5 regular advances", () =
 
 Deno.test("validateAdvance: major advance allowed with 5+ regular advances", () => {
   const regularAdvs: IPlaybookAdvance[] = [
-    { id: "a1", label: "A1" }, { id: "a2", label: "A2" }, { id: "a3", label: "A3" },
-    { id: "a4", label: "A4" }, { id: "a5", label: "A5" },
+    { id: "a1", label: "A1" },
+    { id: "a2", label: "A2" },
+    { id: "a3", label: "A3" },
+    { id: "a4", label: "A4" },
+    { id: "a5", label: "A5" },
   ];
   const pb = mockPlaybook([...regularAdvs, MAJOR_ADV]);
   const s = sheet({ takenAdvances: ["a1", "a2", "a3", "a4", "a5"] });

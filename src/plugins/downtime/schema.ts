@@ -12,7 +12,7 @@ export type DowntimePeriodStatus = "open" | "closed";
 
 export interface IDowntimePeriod {
   id: string;
-  label: string;          // e.g. "Between Session 3 and 4"
+  label: string; // e.g. "Between Session 3 and 4"
   status: DowntimePeriodStatus;
   openedBy: string;
   openedByName: string;
@@ -30,7 +30,7 @@ export interface IDowntimeAction {
   type: DowntimeActionType;
   description: string;
   resolved: boolean;
-  resolution?: string;     // MC narrative response
+  resolution?: string; // MC narrative response
   resolvedBy?: string;
   resolvedByName?: string;
   createdAt: number;

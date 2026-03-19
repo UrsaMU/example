@@ -28,8 +28,8 @@ The `<id>` is the number shown in `+debts`.
 ## Starting debts vs. in-play debts
 
 **Chargen debts** (set during character creation with `+chargen/debt/*`) are
-narrative background. They appear on your sheet but are not the same records
-as in-play debts tracked here.
+narrative background. They appear on your sheet but are not the same records as
+in-play debts tracked here.
 
 **In-play debts** (this system) are created during actual play when moves or
 fiction result in obligations.

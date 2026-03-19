@@ -24,6 +24,6 @@ status. Accepts a name prefix (case-insensitive).
 ## Quick Reference
 
 | What you want to do              | Command            |
-|----------------------------------|--------------------|
+| -------------------------------- | ------------------ |
 | See all active characters        | `+who`             |
 | View one character's public info | `+who/view <name>` |

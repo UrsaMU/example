@@ -1,12 +1,21 @@
 import { addCmd } from "ursamu/app";
-import { periods, actions } from "./db.ts";
-import { isValidType, DOWNTIME_TYPE_LABELS, DOWNTIME_TYPES } from "./logic.ts";
-import type { IDowntimePeriod, IDowntimeAction, DowntimeActionType } from "./schema.ts";
+import { actions, periods } from "./db.ts";
+import { DOWNTIME_TYPE_LABELS, DOWNTIME_TYPES, isValidType } from "./logic.ts";
+import type {
+  DowntimeActionType,
+  IDowntimeAction,
+  IDowntimePeriod,
+} from "./schema.ts";
 
-const H = "%ch"; const N = "%cn"; const G = "%cg"; const Y = "%cy"; const DIM = "%cx";
+const H = "%ch";
+const N = "%cn";
+const G = "%cg";
+const Y = "%cy";
+const DIM = "%cx";
 
 function isStaff(u: { me: { flags: Set<string> } }): boolean {
-  return u.me.flags.has("admin") || u.me.flags.has("wizard") || u.me.flags.has("superuser");
+  return u.me.flags.has("admin") || u.me.flags.has("wizard") ||
+    u.me.flags.has("superuser");
 }
 
 function myName(u: { me: { id: string } }): string {
@@ -20,8 +29,12 @@ async function openPeriod(): Promise<IDowntimePeriod | null> {
 
 function actionLine(a: IDowntimeAction): string {
   const status = a.resolved ? `${G}[DONE]${N}` : `${Y}[OPEN]${N}`;
-  const desc = a.description.length > 60 ? a.description.slice(0, 57) + "..." : a.description;
-  return `  ${H}${a.id.slice(0, 6)}${N}  ${status}  ${H}${a.playerName}${N}  [${a.type}]  ${desc}`;
+  const desc = a.description.length > 60
+    ? a.description.slice(0, 57) + "..."
+    : a.description;
+  return `  ${H}${
+    a.id.slice(0, 6)
+  }${N}  ${status}  ${H}${a.playerName}${N}  [${a.type}]  ${desc}`;
 }
 
 // --- +downtime ---------------------------------------------------------------
@@ -29,7 +42,8 @@ function actionLine(a: IDowntimeAction): string {
 addCmd({
   name: "+downtime",
   category: "Urban Shadows",
-  help: "+downtime  —  View the current downtime period and your submitted actions.",
+  help:
+    "+downtime  —  View the current downtime period and your submitted actions.",
   pattern: /^\+downtime$/i,
   exec: async (u) => {
     const period = await openPeriod();
@@ -39,7 +53,9 @@ addCmd({
     }
 
     const myActions = await actions.query(
-      { periodId: period.id, playerId: u.me.id } as Parameters<typeof actions.query>[0],
+      { periodId: period.id, playerId: u.me.id } as Parameters<
+        typeof actions.query
+      >[0],
     );
 
     const lines = [
@@ -68,7 +84,9 @@ addCmd({
   help: "+downtime/types  —  List available downtime action types.",
   pattern: /^\+downtime\/types$/i,
   exec: (u) => {
-    const lines = [`${H}--- Downtime Action Types -----------------------------------${N}`];
+    const lines = [
+      `${H}--- Downtime Action Types -----------------------------------${N}`,
+    ];
     for (const [t, label] of Object.entries(DOWNTIME_TYPE_LABELS)) {
       lines.push(`  ${H}${t.padEnd(14)}${N}  ${label}`);
     }
@@ -88,11 +106,21 @@ addCmd({
     const description = (u.cmd.args[1] ?? "").trim();
 
     if (!isValidType(actionType)) {
-      u.send(`%ch+downtime/submit:%cn  Unknown type '${actionType}'. Use +downtime/types to see options.`);
+      u.send(
+        `%ch+downtime/submit:%cn  Unknown type '${actionType}'. Use +downtime/types to see options.`,
+      );
       return;
     }
-    if (!description) { u.send("%ch+downtime/submit:%cn  Description cannot be blank."); return; }
-    if (description.length > 1000) { u.send("%ch+downtime/submit:%cn  Description cannot exceed 1000 characters."); return; }
+    if (!description) {
+      u.send("%ch+downtime/submit:%cn  Description cannot be blank.");
+      return;
+    }
+    if (description.length > 1000) {
+      u.send(
+        "%ch+downtime/submit:%cn  Description cannot exceed 1000 characters.",
+      );
+      return;
+    }
 
     const period = await openPeriod();
     if (!period) {
@@ -112,7 +140,9 @@ addCmd({
     };
 
     await actions.create(action);
-    u.send(`%ch+downtime/submit:%cn  Submitted: [${actionType}] ${description}`);
+    u.send(
+      `%ch+downtime/submit:%cn  Submitted: [${actionType}] ${description}`,
+    );
   },
 });
 
@@ -122,17 +152,28 @@ addCmd({
 addCmd({
   name: "+downtime/list",
   category: "Urban Shadows",
-  help: "+downtime/list  —  [Staff] List all actions in the current downtime period.",
+  help:
+    "+downtime/list  —  [Staff] List all actions in the current downtime period.",
   pattern: /^\+downtime\/list$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send("%ch+downtime/list:%cn  Staff only."); return; }
+    if (!isStaff(u)) {
+      u.send("%ch+downtime/list:%cn  Staff only.");
+      return;
+    }
 
     const period = await openPeriod();
-    if (!period) { u.send("%ch+downtime/list:%cn  No downtime period is currently open."); return; }
+    if (!period) {
+      u.send("%ch+downtime/list:%cn  No downtime period is currently open.");
+      return;
+    }
 
-    const all = await actions.query({ periodId: period.id } as Parameters<typeof actions.query>[0]);
+    const all = await actions.query(
+      { periodId: period.id } as Parameters<typeof actions.query>[0],
+    );
     if (!all.length) {
-      u.send(`%ch+downtime/list:%cn  No actions submitted yet for "${period.label}".`);
+      u.send(
+        `%ch+downtime/list:%cn  No actions submitted yet for "${period.label}".`,
+      );
       return;
     }
 
@@ -164,19 +205,27 @@ addCmd({
       return;
     }
 
-    const statusStr = action.resolved ? `${G}${H}RESOLVED${N}` : `${Y}${H}OPEN${N}`;
+    const statusStr = action.resolved
+      ? `${G}${H}RESOLVED${N}`
+      : `${Y}${H}OPEN${N}`;
     const lines = [
       `${H}--- Downtime Action -----------------------------------${N}`,
       `  ID:     ${action.id.slice(0, 8)}`,
       `  Player: ${H}${action.playerName}${N}`,
-      `  Type:   ${H}${action.type}${N}  (${DOWNTIME_TYPE_LABELS[action.type]})`,
+      `  Type:   ${H}${action.type}${N}  (${
+        DOWNTIME_TYPE_LABELS[action.type]
+      })`,
       `  Status: ${statusStr}`,
       `  Desc:   ${action.description}`,
     ];
     if (action.resolved && action.resolution) {
-      lines.push(`${H}--- MC Resolution -----------------------------------${N}`);
+      lines.push(
+        `${H}--- MC Resolution -----------------------------------${N}`,
+      );
       lines.push(`  ${action.resolution}`);
-      if (action.resolvedByName) lines.push(`  ${DIM}[Resolved by ${action.resolvedByName}]${N}`);
+      if (action.resolvedByName) {
+        lines.push(`  ${DIM}[Resolved by ${action.resolvedByName}]${N}`);
+      }
     }
     u.send(lines.join("\n"));
   },
@@ -187,37 +236,66 @@ addCmd({
 addCmd({
   name: "+downtime/resolve",
   category: "Urban Shadows",
-  help: "+downtime/resolve <id>=<resolution>  —  [Staff] Resolve a downtime action with narrative.",
+  help:
+    "+downtime/resolve <id>=<resolution>  —  [Staff] Resolve a downtime action with narrative.",
   pattern: /^\+downtime\/resolve\s+(\S+)=(.+)$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send("%ch+downtime/resolve:%cn  Staff only."); return; }
+    if (!isStaff(u)) {
+      u.send("%ch+downtime/resolve:%cn  Staff only.");
+      return;
+    }
 
     const fragment = (u.cmd.args[0] ?? "").trim();
     const resolution = (u.cmd.args[1] ?? "").trim();
 
-    if (!resolution) { u.send("%ch+downtime/resolve:%cn  Resolution text cannot be blank."); return; }
-    if (resolution.length > 2000) { u.send("%ch+downtime/resolve:%cn  Resolution cannot exceed 2000 characters."); return; }
+    if (!resolution) {
+      u.send("%ch+downtime/resolve:%cn  Resolution text cannot be blank.");
+      return;
+    }
+    if (resolution.length > 2000) {
+      u.send(
+        "%ch+downtime/resolve:%cn  Resolution cannot exceed 2000 characters.",
+      );
+      return;
+    }
 
     const all = await actions.all();
     const action = all.find((a) => a.id.startsWith(fragment));
-    if (!action) { u.send(`%ch+downtime/resolve:%cn  No action found for '${fragment}'.`); return; }
-    if (action.resolved) { u.send(`%ch+downtime/resolve:%cn  Action is already resolved.`); return; }
+    if (!action) {
+      u.send(`%ch+downtime/resolve:%cn  No action found for '${fragment}'.`);
+      return;
+    }
+    if (action.resolved) {
+      u.send(`%ch+downtime/resolve:%cn  Action is already resolved.`);
+      return;
+    }
 
     let alreadyDone = false;
-    const result = await actions.atomicModify(action.id, (current: IDowntimeAction) => {
-      if (current.resolved) { alreadyDone = true; return current; }
-      return {
-        ...current,
-        resolved: true,
-        resolution,
-        resolvedBy: u.me.id,
-        resolvedByName: myName(u),
-        resolvedAt: Date.now(),
-      };
-    });
+    const result = await actions.atomicModify(
+      action.id,
+      (current: IDowntimeAction) => {
+        if (current.resolved) {
+          alreadyDone = true;
+          return current;
+        }
+        return {
+          ...current,
+          resolved: true,
+          resolution,
+          resolvedBy: u.me.id,
+          resolvedByName: myName(u),
+          resolvedAt: Date.now(),
+        };
+      },
+    );
 
-    if (alreadyDone) { u.send(`%ch+downtime/resolve:%cn  Action is already resolved.`); return; }
-    u.send(`%ch+downtime/resolve:%cn  Resolved ${H}${result.playerName}${N}'s [${result.type}] action.`);
+    if (alreadyDone) {
+      u.send(`%ch+downtime/resolve:%cn  Action is already resolved.`);
+      return;
+    }
+    u.send(
+      `%ch+downtime/resolve:%cn  Resolved ${H}${result.playerName}${N}'s [${result.type}] action.`,
+    );
   },
 });
 
@@ -229,11 +307,16 @@ addCmd({
   help: "+downtime/open [label]  —  [Staff] Open a new downtime period.",
   pattern: /^\+downtime\/open(?:\s+(.+))?$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send("%ch+downtime/open:%cn  Staff only."); return; }
+    if (!isStaff(u)) {
+      u.send("%ch+downtime/open:%cn  Staff only.");
+      return;
+    }
 
     const existing = await openPeriod();
     if (existing) {
-      u.send(`%ch+downtime/open:%cn  A period is already open: "${existing.label}". Close it first.`);
+      u.send(
+        `%ch+downtime/open:%cn  A period is already open: "${existing.label}". Close it first.`,
+      );
       return;
     }
 
@@ -250,7 +333,7 @@ addCmd({
     await periods.create(period);
     u.send(
       `%ch+downtime/open:%cn  Downtime period opened: "${label}"\n` +
-      `  Players can now submit with +downtime/submit <type>=<description>.`,
+        `  Players can now submit with +downtime/submit <type>=<description>.`,
     );
   },
 });
@@ -263,12 +346,20 @@ addCmd({
   help: "+downtime/close  —  [Staff] Close the current downtime period.",
   pattern: /^\+downtime\/close$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send("%ch+downtime/close:%cn  Staff only."); return; }
+    if (!isStaff(u)) {
+      u.send("%ch+downtime/close:%cn  Staff only.");
+      return;
+    }
 
     const period = await openPeriod();
-    if (!period) { u.send("%ch+downtime/close:%cn  No downtime period is currently open."); return; }
+    if (!period) {
+      u.send("%ch+downtime/close:%cn  No downtime period is currently open.");
+      return;
+    }
 
-    const all = await actions.query({ periodId: period.id } as Parameters<typeof actions.query>[0]);
+    const all = await actions.query(
+      { periodId: period.id } as Parameters<typeof actions.query>[0],
+    );
     const openCount = all.filter((a) => !a.resolved).length;
 
     await periods.atomicModify(period.id, (current: IDowntimePeriod) => ({
@@ -279,7 +370,11 @@ addCmd({
       closedAt: Date.now(),
     }));
 
-    const warn = openCount > 0 ? `\n  ${Y}Warning: ${openCount} action(s) left unresolved.${N}` : "";
-    u.send(`%ch+downtime/close:%cn  Downtime period "${period.label}" closed.${warn}`);
+    const warn = openCount > 0
+      ? `\n  ${Y}Warning: ${openCount} action(s) left unresolved.${N}`
+      : "";
+    u.send(
+      `%ch+downtime/close:%cn  Downtime period "${period.label}" closed.${warn}`,
+    );
   },
 });

@@ -6,6 +6,7 @@ circle affiliations, and free-text notes. All commands are staff-only.
 ## Finding an NPC
 
 All commands that take `<name>` accept either:
+
 - The start of the NPC's name (case-insensitive, e.g. `ghost` matches `Ghost`)
 - The first 8+ characters of the NPC's ID (shown in brackets in listings)
 
@@ -42,7 +43,7 @@ Mark 1 harm on the NPC. Reports INCAPACITATED when the track fills.
 
 ### +npc/heal \<name\> [n]
 
-Heal *n* harm boxes (default 1). Clears the earliest marked boxes first.
+Heal _n_ harm boxes (default 1). Clears the earliest marked boxes first.
 
     +npc/heal Ghost
     +npc/heal Ghost 3
@@ -77,14 +78,14 @@ Permanently delete the NPC record.
 
 ## Quick Reference
 
-| What you want to do         | Command                         |
-|-----------------------------|---------------------------------|
-| Create an NPC               | `+npc/create <name>`            |
-| See all NPCs                | `+npc/list`                     |
-| See one NPC's details       | `+npc/view <name>`              |
-| Mark 1 harm                 | `+npc/harm <name>`              |
-| Heal harm boxes             | `+npc/heal <name> [n]`          |
-| Set armor                   | `+npc/armor <name>=<0-3>`       |
-| Set circle affiliation      | `+npc/circle <name>=<circle>`   |
-| Add/update notes            | `+npc/note <name>=<text>`       |
-| Delete an NPC               | `+npc/del <name>`               |
+| What you want to do    | Command                       |
+| ---------------------- | ----------------------------- |
+| Create an NPC          | `+npc/create <name>`          |
+| See all NPCs           | `+npc/list`                   |
+| See one NPC's details  | `+npc/view <name>`            |
+| Mark 1 harm            | `+npc/harm <name>`            |
+| Heal harm boxes        | `+npc/heal <name> [n]`        |
+| Set armor              | `+npc/armor <name>=<0-3>`     |
+| Set circle affiliation | `+npc/circle <name>=<circle>` |
+| Add/update notes       | `+npc/note <name>=<text>`     |
+| Delete an NPC          | `+npc/del <name>`             |

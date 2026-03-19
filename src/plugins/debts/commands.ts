@@ -8,7 +8,9 @@ import type { IDebtRecord } from "./schema.ts";
 function debtLine(d: IDebtRecord): string {
   const dir = d.direction === "owed" ? "%cg[OWED TO ME]%cn" : "%cy[I OWE]%cn";
   const status = d.cashedIn ? " %ch%cx(cashed in)%cn" : "";
-  return `  ${dir} %ch${d.otherName}%cn${status}\n    ${d.description}  %ch[id: ${d.id.slice(0, 8)}]%cn`;
+  return `  ${dir} %ch${d.otherName}%cn${status}\n    ${d.description}  %ch[id: ${
+    d.id.slice(0, 8)
+  }]%cn`;
 }
 
 async function ownerName(id: string): Promise<string> {
@@ -25,7 +27,9 @@ addCmd({
   help: "+debts  —  List your active Debts.",
   pattern: /^\+debts?$/i,
   exec: async (u) => {
-    const all = await debts.query({ ownerId: u.me.id } as Parameters<typeof debts.query>[0]);
+    const all = await debts.query(
+      { ownerId: u.me.id } as Parameters<typeof debts.query>[0],
+    );
     const active = all.filter((d) => !d.cashedIn);
     const cashed = all.filter((d) => d.cashedIn);
 
@@ -34,7 +38,9 @@ addCmd({
       return;
     }
 
-    const lines: string[] = ["%ch─── Debts ───────────────────────────────────────────%cn"];
+    const lines: string[] = [
+      "%ch─── Debts ───────────────────────────────────────────%cn",
+    ];
 
     if (active.length) {
       lines.push("%chActive:%cn");
@@ -66,8 +72,14 @@ addCmd({
       u.send("%ch+debt/owe:%cn  Usage: +debt/owe <person>=<description>");
       return;
     }
-    if (otherName.length > 100) { u.send("%ch+debt/owe:%cn  Person name cannot exceed 100 characters."); return; }
-    if (description.length > 1000) { u.send("%ch+debt/owe:%cn  Description cannot exceed 1000 characters."); return; }
+    if (otherName.length > 100) {
+      u.send("%ch+debt/owe:%cn  Person name cannot exceed 100 characters.");
+      return;
+    }
+    if (description.length > 1000) {
+      u.send("%ch+debt/owe:%cn  Description cannot exceed 1000 characters.");
+      return;
+    }
 
     const now = Date.now();
     const record: IDebtRecord = {
@@ -83,7 +95,9 @@ addCmd({
     };
 
     await debts.create(record);
-    u.send(`%ch+debt/owe:%cn  Added debt to %ch${otherName}%cn — "${description}"`);
+    u.send(
+      `%ch+debt/owe:%cn  Added debt to %ch${otherName}%cn — "${description}"`,
+    );
   },
 });
 
@@ -103,8 +117,14 @@ addCmd({
       u.send("%ch+debt/add:%cn  Usage: +debt/add <person>=<description>");
       return;
     }
-    if (otherName.length > 100) { u.send("%ch+debt/add:%cn  Person name cannot exceed 100 characters."); return; }
-    if (description.length > 1000) { u.send("%ch+debt/add:%cn  Description cannot exceed 1000 characters."); return; }
+    if (otherName.length > 100) {
+      u.send("%ch+debt/add:%cn  Person name cannot exceed 100 characters.");
+      return;
+    }
+    if (description.length > 1000) {
+      u.send("%ch+debt/add:%cn  Description cannot exceed 1000 characters.");
+      return;
+    }
 
     const now = Date.now();
     const record: IDebtRecord = {
@@ -120,7 +140,9 @@ addCmd({
     };
 
     await debts.create(record);
-    u.send(`%ch+debt/add:%cn  Recorded that %ch${otherName}%cn owes you — "${description}"`);
+    u.send(
+      `%ch+debt/add:%cn  Recorded that %ch${otherName}%cn owes you — "${description}"`,
+    );
   },
 });
 
@@ -134,11 +156,15 @@ addCmd({
   pattern: /^\+debt\/cashin\s+(\S+)$/i,
   exec: async (u) => {
     const fragment = (u.cmd.args[0] ?? "").trim();
-    const all = await debts.query({ ownerId: u.me.id } as Parameters<typeof debts.query>[0]);
+    const all = await debts.query(
+      { ownerId: u.me.id } as Parameters<typeof debts.query>[0],
+    );
     const debt = all.find((d) => d.id.startsWith(fragment) && !d.cashedIn);
 
     if (!debt) {
-      u.send(`%ch+debt/cashin:%cn  No active debt found matching '${fragment}'.`);
+      u.send(
+        `%ch+debt/cashin:%cn  No active debt found matching '${fragment}'.`,
+      );
       return;
     }
 
@@ -149,8 +175,12 @@ addCmd({
       updatedAt: Date.now(),
     }));
 
-    const dir = debt.direction === "owed" ? `${debt.otherName} owes you` : `you owe ${debt.otherName}`;
-    u.send(`%ch+debt/cashin:%cn  Marked as cashed in: ${dir} — "${debt.description}"`);
+    const dir = debt.direction === "owed"
+      ? `${debt.otherName} owes you`
+      : `you owe ${debt.otherName}`;
+    u.send(
+      `%ch+debt/cashin:%cn  Marked as cashed in: ${dir} — "${debt.description}"`,
+    );
   },
 });
 
@@ -164,7 +194,9 @@ addCmd({
   pattern: /^\+debt\/del\s+(\S+)$/i,
   exec: async (u) => {
     const fragment = (u.cmd.args[0] ?? "").trim();
-    const all = await debts.query({ ownerId: u.me.id } as Parameters<typeof debts.query>[0]);
+    const all = await debts.query(
+      { ownerId: u.me.id } as Parameters<typeof debts.query>[0],
+    );
     const debt = all.find((d) => d.id.startsWith(fragment));
 
     if (!debt) {
@@ -173,6 +205,8 @@ addCmd({
     }
 
     await debts.delete({ id: debt.id } as Parameters<typeof debts.delete>[0]);
-    u.send(`%ch+debt/del:%cn  Deleted debt with ${debt.otherName} — "${debt.description}"`);
+    u.send(
+      `%ch+debt/del:%cn  Deleted debt with ${debt.otherName} — "${debt.description}"`,
+    );
   },
 });

@@ -18,6 +18,7 @@ and the threat resolves catastrophically. Use `+front/tick` to advance it and
 ## Finding a Front
 
 All commands that take `<name>` accept either:
+
 - The start of the front's name (case-insensitive)
 - The first 8+ characters of the front's ID (shown in brackets)
 
@@ -62,7 +63,7 @@ Change the doom clock size. Existing ticks are clamped to the new size.
 
 ### +front/tick \<name\> [n]
 
-Advance the doom clock by *n* segments (default 1). Announces DOOM REACHED when
+Advance the doom clock by _n_ segments (default 1). Announces DOOM REACHED when
 the clock fills.
 
     +front/tick Court
@@ -76,8 +77,8 @@ Remove one tick from the doom clock (floor at 0).
 
 ### +front/portent \<name\>=\<text\>
 
-Add a grim portent to the front. Fronts support at most 8 portents. Portents
-are numbered in the order added.
+Add a grim portent to the front. Fronts support at most 8 portents. Portents are
+numbered in the order added.
 
     +front/portent Court=The third blood feast is announced publicly.
     +front/portent Court=Bodies found drained in the Mortalis quarter.
@@ -110,18 +111,18 @@ Permanently delete the front record (searches all statuses).
 
 ## Quick Reference
 
-| What you want to do            | Command                          |
-|--------------------------------|----------------------------------|
-| Create a front                 | `+front/create <name>`           |
-| List active fronts             | `+front/list`                    |
-| List all fronts                | `+front/list all`                |
-| See full front details         | `+front/view <name>`             |
-| Set description                | `+front/desc <name>=<text>`      |
-| Change clock size              | `+front/clock <name>=<4\|6\|8>` |
-| Advance clock                  | `+front/tick <name> [n]`         |
-| Pull back clock                | `+front/untick <name>`           |
-| Add grim portent               | `+front/portent <name>=<text>`   |
-| Trigger portent #n             | `+front/trigger <name>=<n>`      |
-| Resolve front                  | `+front/resolve <name>`          |
-| Abandon front                  | `+front/abandon <name>`          |
-| Delete front                   | `+front/del <name>`              |
+| What you want to do    | Command                         |
+| ---------------------- | ------------------------------- |
+| Create a front         | `+front/create <name>`          |
+| List active fronts     | `+front/list`                   |
+| List all fronts        | `+front/list all`               |
+| See full front details | `+front/view <name>`            |
+| Set description        | `+front/desc <name>=<text>`     |
+| Change clock size      | `+front/clock <name>=<4\|6\|8>` |
+| Advance clock          | `+front/tick <name> [n]`        |
+| Pull back clock        | `+front/untick <name>`          |
+| Add grim portent       | `+front/portent <name>=<text>`  |
+| Trigger portent #n     | `+front/trigger <name>=<n>`     |
+| Resolve front          | `+front/resolve <name>`         |
+| Abandon front          | `+front/abandon <name>`         |
+| Delete front           | `+front/del <name>`             |

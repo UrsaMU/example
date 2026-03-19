@@ -1,5 +1,10 @@
 import { assertEquals } from "@std/assert";
-import { clockBar, isDoom, tickClock, untickClock } from "../src/plugins/fronts/logic.ts";
+import {
+  clockBar,
+  isDoom,
+  tickClock,
+  untickClock,
+} from "../src/plugins/fronts/logic.ts";
 import type { IFront } from "../src/plugins/fronts/schema.ts";
 
 // ─── clockBar ─────────────────────────────────────────────────────────────────

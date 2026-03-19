@@ -2,8 +2,8 @@
 
 import { rollDice } from "../dice/logic.ts";
 import { PLAYBOOKS } from "../playbooks/data.ts";
-import type { StatName, RollResult } from "../dice/logic.ts";
-import type { IPlaybookMove, ICharSheet } from "../playbooks/schema.ts";
+import type { RollResult, StatName } from "../dice/logic.ts";
+import type { ICharSheet, IPlaybookMove } from "../playbooks/schema.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

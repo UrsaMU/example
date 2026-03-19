@@ -1,6 +1,9 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { makePlaybooksRouter } from "../src/plugins/playbooks/router.ts";
-import type { SheetStore, PlayerStore } from "../src/plugins/playbooks/router.ts";
+import type {
+  PlayerStore,
+  SheetStore,
+} from "../src/plugins/playbooks/router.ts";
 import type { ICharSheet } from "../src/plugins/playbooks/schema.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -24,33 +27,55 @@ function makeSheetStore(
 ): SheetStore & { _sheet: Partial<ICharSheet> | null } {
   let sheet = initial !== undefined ? (initial ? { ...initial } : null) : null;
   return {
-    get _sheet() { return sheet; },
+    get _sheet() {
+      return sheet;
+    },
     query: () => Promise.resolve(sheet ? [sheet as ICharSheet] : []),
     queryOne: () => Promise.resolve(sheet as ICharSheet | null),
-    create: (r) => { sheet = { ...r }; return Promise.resolve(r); },
-    modify: (_q, _op, update) => { if (sheet) Object.assign(sheet, update); return Promise.resolve(); },
-    delete: () => { sheet = null; return Promise.resolve(); },
+    create: (r) => {
+      sheet = { ...r };
+      return Promise.resolve(r);
+    },
+    modify: (_q, _op, update) => {
+      if (sheet) Object.assign(sheet, update);
+      return Promise.resolve();
+    },
+    delete: () => {
+      sheet = null;
+      return Promise.resolve();
+    },
   };
 }
 
-function makePlayerStore(isStaff: boolean, name = "Talia"): PlayerStore & { _applied: Record<string, unknown> | null } {
+function makePlayerStore(
+  isStaff: boolean,
+  name = "Talia",
+): PlayerStore & { _applied: Record<string, unknown> | null } {
   let applied: Record<string, unknown> | null = null;
   return {
-    get _applied() { return applied; },
-    queryOne: () => Promise.resolve({ flags: isStaff ? "admin" : "player", data: { name } }),
-    modify: (_q, _op, update) => { applied = update; return Promise.resolve(); },
+    get _applied() {
+      return applied;
+    },
+    queryOne: () =>
+      Promise.resolve({ flags: isStaff ? "admin" : "player", data: { name } }),
+    modify: (_q, _op, update) => {
+      applied = update;
+      return Promise.resolve();
+    },
   };
 }
 
 const NORMAL = makePlayerStore(false);
-const STAFF  = makePlayerStore(true);
+const STAFF = makePlayerStore(true);
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 // Minimal sheet that passes validateSheet for "aware"
 // Aware: baseStats {blood:0, heart:1, mind:-1, spirit:1}, moveCount:3, 5 introQuestions, 3 startingDebts
 // featureDefs: kit (required), mortalRelationships (required)
-function validAwareSheet(overrides: Partial<ICharSheet> = {}): Partial<ICharSheet> {
+function validAwareSheet(
+  overrides: Partial<ICharSheet> = {},
+): Partial<ICharSheet> {
   return {
     id: "p1",
     playerId: "p1",
@@ -75,16 +100,34 @@ function validAwareSheet(overrides: Partial<ICharSheet> = {}): Partial<ICharShee
       mortalRelationships: "1. Alex (sister) 2. Sam (partner) 3. Jo (neighbor)",
     },
     introAnswers: {
-      "How did you discover the supernatural?": "I saw a ghost at my mother's funeral.",
+      "How did you discover the supernatural?":
+        "I saw a ghost at my mother's funeral.",
       "How long have you been in the city?": "Three years.",
-      "What mortal commitment keeps you from leaving your old life behind?": "My sister needs me.",
+      "What mortal commitment keeps you from leaving your old life behind?":
+        "My sister needs me.",
       "What mortal aspiration have you given up?": "A normal career.",
-      "What powerful faction or person are you currently investigating?": "The Night Circle.",
+      "What powerful faction or person are you currently investigating?":
+        "The Night Circle.",
     },
     debts: [
-      { id: "d1", to: "Marcus", description: "He hid the truth from me for years.", direction: "owed" },
-      { id: "d2", to: "Sarah",  description: "She answers my questions without judgment.", direction: "owes" },
-      { id: "d3", to: "Jonas",  description: "I blackmailed him into helping me.", direction: "owes" },
+      {
+        id: "d1",
+        to: "Marcus",
+        description: "He hid the truth from me for years.",
+        direction: "owed",
+      },
+      {
+        id: "d2",
+        to: "Sarah",
+        description: "She answers my questions without judgment.",
+        direction: "owes",
+      },
+      {
+        id: "d3",
+        to: "Jonas",
+        description: "I blackmailed him into helping me.",
+        direction: "owes",
+      },
     ],
     notes: "",
     xp: 0,
@@ -102,7 +145,11 @@ Deno.test("GET /api/v1/playbooks: lists all playbooks", async () => {
   const res = await handler(req("GET", "/api/v1/playbooks"), null);
   assertEquals(res.status, 200);
   const body = await json(res);
-  assertExists((body as unknown as unknown[]).find((p: unknown) => (p as Record<string, unknown>).id === "aware"));
+  assertExists(
+    (body as unknown as unknown[]).find((p: unknown) =>
+      (p as Record<string, unknown>).id === "aware"
+    ),
+  );
 });
 
 Deno.test("GET /api/v1/playbooks/:id: returns playbook", async () => {
@@ -124,15 +171,17 @@ Deno.test("GET /api/v1/playbooks/:id: 404 for unknown playbook", async () => {
 
 Deno.test("chargen routes: no userId → 401", async () => {
   const handler = makePlaybooksRouter(makeSheetStore(), NORMAL);
-  for (const r of [
-    req("GET",    "/api/v1/chargen"),
-    req("POST",   "/api/v1/chargen", { playbookId: "aware" }),
-    req("PATCH",  "/api/v1/chargen", { name: "X" }),
-    req("DELETE", "/api/v1/chargen"),
-    req("POST",   "/api/v1/chargen/submit"),
-    req("GET",    "/api/v1/chargen/checklist"),
-    req("GET",    "/api/v1/chargen/all"),
-  ]) {
+  for (
+    const r of [
+      req("GET", "/api/v1/chargen"),
+      req("POST", "/api/v1/chargen", { playbookId: "aware" }),
+      req("PATCH", "/api/v1/chargen", { name: "X" }),
+      req("DELETE", "/api/v1/chargen"),
+      req("POST", "/api/v1/chargen/submit"),
+      req("GET", "/api/v1/chargen/checklist"),
+      req("GET", "/api/v1/chargen/all"),
+    ]
+  ) {
     const res = await handler(r, null);
     assertEquals(res.status, 401, `${r.method} ${new URL(r.url).pathname}`);
   }
@@ -148,7 +197,10 @@ Deno.test("GET /api/v1/chargen: returns null when no sheet", async () => {
 });
 
 Deno.test("GET /api/v1/chargen: returns existing sheet", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet()), NORMAL);
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet()),
+    NORMAL,
+  );
   const res = await handler(req("GET", "/api/v1/chargen"), "p1");
   assertEquals(res.status, 200);
   const body = await json(res);
@@ -162,7 +214,10 @@ Deno.test("POST /api/v1/chargen: creates sheet with playbook defaults", async ()
   const store = makeSheetStore(null);
   const players = makePlayerStore(false, "Talia");
   const handler = makePlaybooksRouter(store, players);
-  const res = await handler(req("POST", "/api/v1/chargen", { playbookId: "aware" }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/chargen", { playbookId: "aware" }),
+    "p1",
+  );
   assertEquals(res.status, 201);
   const body = await json(res);
   assertEquals(body.playbookId, "aware");
@@ -176,20 +231,32 @@ Deno.test("POST /api/v1/chargen: creates sheet with playbook defaults", async ()
 
 Deno.test("POST /api/v1/chargen: rejects unknown playbook", async () => {
   const handler = makePlaybooksRouter(makeSheetStore(null), NORMAL);
-  const res = await handler(req("POST", "/api/v1/chargen", { playbookId: "unknown" }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/chargen", { playbookId: "unknown" }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("POST /api/v1/chargen: 409 if sheet already exists", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet()), NORMAL);
-  const res = await handler(req("POST", "/api/v1/chargen", { playbookId: "aware" }), "p1");
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet()),
+    NORMAL,
+  );
+  const res = await handler(
+    req("POST", "/api/v1/chargen", { playbookId: "aware" }),
+    "p1",
+  );
   assertEquals(res.status, 409);
 });
 
 Deno.test("POST /api/v1/chargen: allows re-start after rejection", async () => {
   const store = makeSheetStore(validAwareSheet({ status: "rejected" }));
   const handler = makePlaybooksRouter(store, NORMAL);
-  const res = await handler(req("POST", "/api/v1/chargen", { playbookId: "aware" }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/chargen", { playbookId: "aware" }),
+    "p1",
+  );
   assertEquals(res.status, 201);
 });
 
@@ -198,7 +265,10 @@ Deno.test("POST /api/v1/chargen: allows re-start after rejection", async () => {
 Deno.test("PATCH /api/v1/chargen: updates name and look", async () => {
   const store = makeSheetStore(validAwareSheet());
   const handler = makePlaybooksRouter(store, NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen", { name: "Nova", look: "hooded" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", { name: "Nova", look: "hooded" }),
+    "p1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.name, "Nova");
@@ -209,52 +279,73 @@ Deno.test("PATCH /api/v1/chargen: rejects boosting more than one stat", async ()
   const store = makeSheetStore(validAwareSheet());
   const handler = makePlaybooksRouter(store, NORMAL);
   // base {blood:0, heart:1, mind:-1, spirit:1}, send two boosts
-  const res = await handler(req("PATCH", "/api/v1/chargen", {
-    stats: { blood: 1, heart: 2, mind: -1, spirit: 1 },
-  }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", {
+      stats: { blood: 1, heart: 2, mind: -1, spirit: 1 },
+    }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("PATCH /api/v1/chargen: rejects boosting more than one circle rating", async () => {
   const store = makeSheetStore(validAwareSheet());
   const handler = makePlaybooksRouter(store, NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen", {
-    circleRatings: { mortalis: 2, night: 1, power: 1, wild: -1 },
-  }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", {
+      circleRatings: { mortalis: 2, night: 1, power: 1, wild: -1 },
+    }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("PATCH /api/v1/chargen: rejects invalid demeanor", async () => {
   const store = makeSheetStore(validAwareSheet());
   const handler = makePlaybooksRouter(store, NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen", { demeanor: "reckless" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", { demeanor: "reckless" }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("PATCH /api/v1/chargen: 404 if no sheet", async () => {
   const handler = makePlaybooksRouter(makeSheetStore(null), NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen", { name: "X" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", { name: "X" }),
+    "p1",
+  );
   assertEquals(res.status, 404);
 });
 
 Deno.test("PATCH /api/v1/chargen: 403 if approved", async () => {
   const store = makeSheetStore(validAwareSheet({ status: "approved" }));
   const handler = makePlaybooksRouter(store, NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen", { name: "X" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", { name: "X" }),
+    "p1",
+  );
   assertEquals(res.status, 403);
 });
 
 Deno.test("PATCH /api/v1/chargen: 403 if pending", async () => {
   const store = makeSheetStore(validAwareSheet({ status: "pending" }));
   const handler = makePlaybooksRouter(store, NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen", { name: "X" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", { name: "X" }),
+    "p1",
+  );
   assertEquals(res.status, 403);
 });
 
 Deno.test("PATCH /api/v1/chargen: resets rejected sheet to draft", async () => {
   const store = makeSheetStore(validAwareSheet({ status: "rejected" }));
   const handler = makePlaybooksRouter(store, NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen", { name: "Nova" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen", { name: "Nova" }),
+    "p1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.status, "draft");
@@ -364,16 +455,25 @@ Deno.test("submit: unanswered intro question → 422", async () => {
 });
 
 Deno.test("submit: too few debts → 422", async () => {
-  const store = makeSheetStore(validAwareSheet({ debts: [
-    { id: "d1", to: "Marcus", description: "He hid the truth.", direction: "owed" },
-  ]}));
+  const store = makeSheetStore(validAwareSheet({
+    debts: [
+      {
+        id: "d1",
+        to: "Marcus",
+        description: "He hid the truth.",
+        direction: "owed",
+      },
+    ],
+  }));
   const handler = makePlaybooksRouter(store, NORMAL);
   const res = await handler(req("POST", "/api/v1/chargen/submit"), "p1");
   assertEquals(res.status, 422);
 });
 
 Deno.test("submit: required feature missing → 422", async () => {
-  const store = makeSheetStore(validAwareSheet({ features: { mortalRelationships: "friend" } }));
+  const store = makeSheetStore(
+    validAwareSheet({ features: { mortalRelationships: "friend" } }),
+  );
   const handler = makePlaybooksRouter(store, NORMAL);
   const res = await handler(req("POST", "/api/v1/chargen/submit"), "p1");
   assertEquals(res.status, 422);
@@ -391,7 +491,10 @@ Deno.test("checklist: no sheet → incomplete with prompt", async () => {
 });
 
 Deno.test("checklist: valid sheet → complete + circle info", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet()), NORMAL);
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet()),
+    NORMAL,
+  );
   const res = await handler(req("GET", "/api/v1/chargen/checklist"), "p1");
   assertEquals(res.status, 200);
   const body = await json(res);
@@ -404,7 +507,10 @@ Deno.test("checklist: valid sheet → complete + circle info", async () => {
 });
 
 Deno.test("checklist: incomplete sheet → problems list + circle info", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet({ name: "" })), NORMAL);
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet({ name: "" })),
+    NORMAL,
+  );
   const res = await handler(req("GET", "/api/v1/chargen/checklist"), "p1");
   assertEquals(res.status, 200);
   const body = await json(res);
@@ -423,7 +529,10 @@ Deno.test("chargen/all: staff sees all sheets", async () => {
 });
 
 Deno.test("chargen/all: non-staff → 403", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet()), NORMAL);
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet()),
+    NORMAL,
+  );
   const res = await handler(req("GET", "/api/v1/chargen/all"), "p1");
   assertEquals(res.status, 403);
 });
@@ -431,13 +540,19 @@ Deno.test("chargen/all: non-staff → 403", async () => {
 // ─── GET /api/v1/chargen/:id (staff or self) ─────────────────────────────────
 
 Deno.test("chargen/:id: player can view own sheet", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet()), NORMAL);
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet()),
+    NORMAL,
+  );
   const res = await handler(req("GET", "/api/v1/chargen/p1"), "p1");
   assertEquals(res.status, 200);
 });
 
 Deno.test("chargen/:id: non-staff cannot view others", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet()), NORMAL);
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet()),
+    NORMAL,
+  );
   const res = await handler(req("GET", "/api/v1/chargen/p1"), "other");
   assertEquals(res.status, 403);
 });
@@ -457,30 +572,51 @@ Deno.test("chargen/:id: 404 if sheet not found", async () => {
 // ─── PATCH /api/v1/chargen/:id/status ────────────────────────────────────────
 
 Deno.test("status PATCH: non-staff → 403", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet({ status: "pending" })), NORMAL);
-  const res = await handler(req("PATCH", "/api/v1/chargen/p1/status", { status: "approved" }), "p1");
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet({ status: "pending" })),
+    NORMAL,
+  );
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen/p1/status", { status: "approved" }),
+    "p1",
+  );
   assertEquals(res.status, 403);
 });
 
 Deno.test("status PATCH: staff rejects sheet", async () => {
   const store = makeSheetStore(validAwareSheet({ status: "pending" }));
   const handler = makePlaybooksRouter(store, STAFF);
-  const res = await handler(req("PATCH", "/api/v1/chargen/p1/status", { status: "rejected", reason: "needs more detail" }), "admin1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen/p1/status", {
+      status: "rejected",
+      reason: "needs more detail",
+    }),
+    "admin1",
+  );
   assertEquals(res.status, 200);
   assertEquals((store._sheet as ICharSheet).status, "rejected");
-  assertEquals((store._sheet as ICharSheet).rejectionReason, "needs more detail");
+  assertEquals(
+    (store._sheet as ICharSheet).rejectionReason,
+    "needs more detail",
+  );
 });
 
 Deno.test("status PATCH: staff approves sheet → applies to player", async () => {
   const store = makeSheetStore(validAwareSheet({ status: "pending" }));
   const players = makePlayerStore(true);
   const handler = makePlaybooksRouter(store, players);
-  const res = await handler(req("PATCH", "/api/v1/chargen/p1/status", { status: "approved" }), "admin1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen/p1/status", { status: "approved" }),
+    "admin1",
+  );
   assertEquals(res.status, 200);
   assertEquals((store._sheet as ICharSheet).status, "approved");
   // applySheetToPlayer was called
   assertExists(players._applied);
-  const data = (players._applied as Record<string, unknown>).data as Record<string, unknown>;
+  const data = (players._applied as Record<string, unknown>).data as Record<
+    string,
+    unknown
+  >;
   assertEquals(data.chargenStatus, "approved");
   assertEquals(data.playbookName, "The Aware");
   assertExists(data.circleStatus);
@@ -488,14 +624,23 @@ Deno.test("status PATCH: staff approves sheet → applies to player", async () =
 });
 
 Deno.test("status PATCH: invalid status → 400", async () => {
-  const handler = makePlaybooksRouter(makeSheetStore(validAwareSheet({ status: "pending" })), STAFF);
-  const res = await handler(req("PATCH", "/api/v1/chargen/p1/status", { status: "limbo" }), "admin1");
+  const handler = makePlaybooksRouter(
+    makeSheetStore(validAwareSheet({ status: "pending" })),
+    STAFF,
+  );
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen/p1/status", { status: "limbo" }),
+    "admin1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("status PATCH: sheet not found → 404", async () => {
   const handler = makePlaybooksRouter(makeSheetStore(null), STAFF);
-  const res = await handler(req("PATCH", "/api/v1/chargen/missing/status", { status: "approved" }), "admin1");
+  const res = await handler(
+    req("PATCH", "/api/v1/chargen/missing/status", { status: "approved" }),
+    "admin1",
+  );
   assertEquals(res.status, 404);
 });
 
@@ -521,8 +666,14 @@ Deno.test("approval: circleStatus copied to player data", async () => {
   }));
   const players = makePlayerStore(true);
   const handler = makePlaybooksRouter(store, players);
-  await handler(req("PATCH", "/api/v1/chargen/p1/status", { status: "approved" }), "admin1");
-  const data = (players._applied as Record<string, unknown>).data as Record<string, unknown>;
+  await handler(
+    req("PATCH", "/api/v1/chargen/p1/status", { status: "approved" }),
+    "admin1",
+  );
+  const data = (players._applied as Record<string, unknown>).data as Record<
+    string,
+    unknown
+  >;
   const cs = data.circleStatus as Record<string, number>;
   assertEquals(cs.mortalis, 2);
 });

@@ -1,15 +1,20 @@
 import { addCmd } from "ursamu/app";
 import { sheets } from "../playbooks/db.ts";
 import { factions } from "./db.ts";
-import { markCircle, improveCircle, adjustCircle } from "./logic.ts";
-import { CIRCLE_NAMES, CIRCLE_STATUS_MIN, CIRCLE_STATUS_MAX } from "./schema.ts";
+import { adjustCircle, improveCircle, markCircle } from "./logic.ts";
+import {
+  CIRCLE_NAMES,
+  CIRCLE_STATUS_MAX,
+  CIRCLE_STATUS_MIN,
+} from "./schema.ts";
 import type { CircleName, IFactionEntry } from "./schema.ts";
 import type { ICharSheet } from "../playbooks/schema.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isStaff(u: { me: { flags: Set<string> } }): boolean {
-  return u.me.flags.has("admin") || u.me.flags.has("wizard") || u.me.flags.has("superuser");
+  return u.me.flags.has("admin") || u.me.flags.has("wizard") ||
+    u.me.flags.has("superuser");
 }
 
 function statusColor(v: number): string {
@@ -32,7 +37,9 @@ function circleStatusTable(sheet: ICharSheet): string {
     `  ${"Circle".padEnd(10)} Status  Rating`,
     `  ${"──────".padEnd(10)} ──────  ──────`,
     ...CIRCLE_NAMES.map((c) =>
-      `  ${c.padEnd(10)} ${statusDisplay(s[c]).padEnd(20)}  ${r[c] >= 0 ? "+" : ""}${r[c]}`
+      `  ${c.padEnd(10)} ${statusDisplay(s[c]).padEnd(20)}  ${
+        r[c] >= 0 ? "+" : ""
+      }${r[c]}`
     ),
   ].join("\n");
 }
@@ -46,19 +53,29 @@ addCmd({
   help: "+circles  —  View your Circle status and Faction affiliations.",
   pattern: /^\+circles$/i,
   exec: async (u) => {
-    const sheet = await sheets.queryOne({ id: u.me.id } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
+    const sheet = await sheets.queryOne(
+      { id: u.me.id } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
     if (!sheet || sheet.status !== "approved") {
       u.send("%ch+circles:%cn  No approved character sheet found.");
       return;
     }
 
-    const myFactions = await factions.query({ playerId: u.me.id } as Parameters<typeof factions.query>[0]);
+    const myFactions = await factions.query(
+      { playerId: u.me.id } as Parameters<typeof factions.query>[0],
+    );
     const lines = [circleStatusTable(sheet)];
 
     if (myFactions.length) {
-      lines.push(`\n%ch─── Faction Affiliations ─────────────────────────────%cn`);
+      lines.push(
+        `\n%ch─── Faction Affiliations ─────────────────────────────%cn`,
+      );
       for (const f of myFactions) {
-        lines.push(`  [${f.circle}] %ch${f.name}%cn  ${statusDisplay(f.status)}  %ch[${f.id.slice(0, 8)}]%cn`);
+        lines.push(
+          `  [${f.circle}] %ch${f.name}%cn  ${statusDisplay(f.status)}  %ch[${
+            f.id.slice(0, 8)
+          }]%cn`,
+        );
         if (f.notes) lines.push(`    ${f.notes}`);
       }
     } else {
@@ -75,46 +92,78 @@ addCmd({
 addCmd({
   name: "+circles/mark",
   category: "Urban Shadows",
-  help: "+circles/mark <circle> [<player>]  —  Mark a Circle (−1 status). Staff/MC.",
+  help:
+    "+circles/mark <circle> [<player>]  —  Mark a Circle (−1 status). Staff/MC.",
   pattern: /^\+circles\/mark\s+(\w+)(?:\s+(.+))?$/i,
   exec: async (u) => {
     const circle = (u.cmd.args[0] ?? "").toLowerCase() as CircleName;
     const targetName = (u.cmd.args[1] ?? "").trim();
 
     if (!CIRCLE_NAMES.includes(circle)) {
-      u.send(`%ch+circles/mark:%cn  Unknown circle '${circle}'. Use: ${CIRCLE_NAMES.join(", ")}`);
+      u.send(
+        `%ch+circles/mark:%cn  Unknown circle '${circle}'. Use: ${
+          CIRCLE_NAMES.join(", ")
+        }`,
+      );
       return;
     }
 
     let targetId = u.me.id;
     if (targetName) {
-      if (!isStaff(u)) { u.send("%ch+circles/mark:%cn  Only staff can adjust others."); return; }
-      const target = await sheets.queryOne({ name: targetName } as Parameters<typeof sheets.queryOne>[0]);
-      if (!target) { u.send(`%ch+circles/mark:%cn  No sheet for '${targetName}'.`); return; }
+      if (!isStaff(u)) {
+        u.send("%ch+circles/mark:%cn  Only staff can adjust others.");
+        return;
+      }
+      const target = await sheets.queryOne(
+        { name: targetName } as Parameters<typeof sheets.queryOne>[0],
+      );
+      if (!target) {
+        u.send(`%ch+circles/mark:%cn  No sheet for '${targetName}'.`);
+        return;
+      }
       targetId = (target as ICharSheet).id;
     }
 
-    const sheet = await sheets.queryOne({ id: targetId } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
-    if (!sheet || sheet.status !== "approved") { u.send("%ch+circles/mark:%cn  No approved sheet found."); return; }
+    const sheet = await sheets.queryOne(
+      { id: targetId } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
+    if (!sheet || sheet.status !== "approved") {
+      u.send("%ch+circles/mark:%cn  No approved sheet found.");
+      return;
+    }
     if (!markCircle(sheet.circleStatus, circle)) {
-      u.send(`%ch+circles/mark:%cn  ${circle} status is already at minimum (${CIRCLE_STATUS_MIN}).`);
+      u.send(
+        `%ch+circles/mark:%cn  ${circle} status is already at minimum (${CIRCLE_STATUS_MIN}).`,
+      );
       return;
     }
 
     let atMin = false;
-    const result = await sheets.atomicModify(targetId, (current: ICharSheet) => {
-      const updated = markCircle(current.circleStatus, circle);
-      if (!updated) { atMin = true; return current; }
-      return { ...current, circleStatus: updated, updatedAt: Date.now() };
-    });
+    const result = await sheets.atomicModify(
+      targetId,
+      (current: ICharSheet) => {
+        const updated = markCircle(current.circleStatus, circle);
+        if (!updated) {
+          atMin = true;
+          return current;
+        }
+        return { ...current, circleStatus: updated, updatedAt: Date.now() };
+      },
+    );
 
     if (atMin) {
-      u.send(`%ch+circles/mark:%cn  ${circle} status is already at minimum (${CIRCLE_STATUS_MIN}).`);
+      u.send(
+        `%ch+circles/mark:%cn  ${circle} status is already at minimum (${CIRCLE_STATUS_MIN}).`,
+      );
       return;
     }
 
     const who = targetName || "Your";
-    u.send(`%ch+circles/mark:%cn  ${who} %ch${circle}%cn status: ${statusDisplay(result.circleStatus[circle])}`);
+    u.send(
+      `%ch+circles/mark:%cn  ${who} %ch${circle}%cn status: ${
+        statusDisplay(result.circleStatus[circle])
+      }`,
+    );
   },
 });
 
@@ -124,46 +173,78 @@ addCmd({
 addCmd({
   name: "+circles/improve",
   category: "Urban Shadows",
-  help: "+circles/improve <circle> [<player>]  —  Improve a Circle (+1 status).",
+  help:
+    "+circles/improve <circle> [<player>]  —  Improve a Circle (+1 status).",
   pattern: /^\+circles\/improve\s+(\w+)(?:\s+(.+))?$/i,
   exec: async (u) => {
     const circle = (u.cmd.args[0] ?? "").toLowerCase() as CircleName;
     const targetName = (u.cmd.args[1] ?? "").trim();
 
     if (!CIRCLE_NAMES.includes(circle)) {
-      u.send(`%ch+circles/improve:%cn  Unknown circle '${circle}'. Use: ${CIRCLE_NAMES.join(", ")}`);
+      u.send(
+        `%ch+circles/improve:%cn  Unknown circle '${circle}'. Use: ${
+          CIRCLE_NAMES.join(", ")
+        }`,
+      );
       return;
     }
 
     let targetId = u.me.id;
     if (targetName) {
-      if (!isStaff(u)) { u.send("%ch+circles/improve:%cn  Only staff can adjust others."); return; }
-      const target = await sheets.queryOne({ name: targetName } as Parameters<typeof sheets.queryOne>[0]);
-      if (!target) { u.send(`%ch+circles/improve:%cn  No sheet for '${targetName}'.`); return; }
+      if (!isStaff(u)) {
+        u.send("%ch+circles/improve:%cn  Only staff can adjust others.");
+        return;
+      }
+      const target = await sheets.queryOne(
+        { name: targetName } as Parameters<typeof sheets.queryOne>[0],
+      );
+      if (!target) {
+        u.send(`%ch+circles/improve:%cn  No sheet for '${targetName}'.`);
+        return;
+      }
       targetId = (target as ICharSheet).id;
     }
 
-    const sheet = await sheets.queryOne({ id: targetId } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
-    if (!sheet || sheet.status !== "approved") { u.send("%ch+circles/improve:%cn  No approved sheet found."); return; }
+    const sheet = await sheets.queryOne(
+      { id: targetId } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
+    if (!sheet || sheet.status !== "approved") {
+      u.send("%ch+circles/improve:%cn  No approved sheet found.");
+      return;
+    }
     if (!improveCircle(sheet.circleStatus, circle)) {
-      u.send(`%ch+circles/improve:%cn  ${circle} status is already at maximum (${CIRCLE_STATUS_MAX}).`);
+      u.send(
+        `%ch+circles/improve:%cn  ${circle} status is already at maximum (${CIRCLE_STATUS_MAX}).`,
+      );
       return;
     }
 
     let atMax = false;
-    const result = await sheets.atomicModify(targetId, (current: ICharSheet) => {
-      const updated = improveCircle(current.circleStatus, circle);
-      if (!updated) { atMax = true; return current; }
-      return { ...current, circleStatus: updated, updatedAt: Date.now() };
-    });
+    const result = await sheets.atomicModify(
+      targetId,
+      (current: ICharSheet) => {
+        const updated = improveCircle(current.circleStatus, circle);
+        if (!updated) {
+          atMax = true;
+          return current;
+        }
+        return { ...current, circleStatus: updated, updatedAt: Date.now() };
+      },
+    );
 
     if (atMax) {
-      u.send(`%ch+circles/improve:%cn  ${circle} status is already at maximum (${CIRCLE_STATUS_MAX}).`);
+      u.send(
+        `%ch+circles/improve:%cn  ${circle} status is already at maximum (${CIRCLE_STATUS_MAX}).`,
+      );
       return;
     }
 
     const who = targetName || "Your";
-    u.send(`%ch+circles/improve:%cn  ${who} %ch${circle}%cn status: ${statusDisplay(result.circleStatus[circle])}`);
+    u.send(
+      `%ch+circles/improve:%cn  ${who} %ch${circle}%cn status: ${
+        statusDisplay(result.circleStatus[circle])
+      }`,
+    );
   },
 });
 
@@ -173,42 +254,71 @@ addCmd({
 addCmd({
   name: "+circles/set",
   category: "Urban Shadows",
-  help: "+circles/set <circle>=<value> [<player>]  —  [Staff] Set Circle status directly.",
+  help:
+    "+circles/set <circle>=<value> [<player>]  —  [Staff] Set Circle status directly.",
   pattern: /^\+circles\/set\s+(\w+)=([+-]?\d+)(?:\s+(.+))?$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send("%ch+circles/set:%cn  Staff only."); return; }
+    if (!isStaff(u)) {
+      u.send("%ch+circles/set:%cn  Staff only.");
+      return;
+    }
 
     const circle = (u.cmd.args[0] ?? "").toLowerCase() as CircleName;
     const value = parseInt(u.cmd.args[1] ?? "0", 10);
     const targetName = (u.cmd.args[2] ?? "").trim();
 
     if (!CIRCLE_NAMES.includes(circle)) {
-      u.send(`%ch+circles/set:%cn  Unknown circle. Use: ${CIRCLE_NAMES.join(", ")}`);
+      u.send(
+        `%ch+circles/set:%cn  Unknown circle. Use: ${CIRCLE_NAMES.join(", ")}`,
+      );
       return;
     }
 
     if (value < CIRCLE_STATUS_MIN || value > CIRCLE_STATUS_MAX) {
-      u.send(`%ch+circles/set:%cn  Value must be ${CIRCLE_STATUS_MIN}–${CIRCLE_STATUS_MAX}. Got ${value}.`);
+      u.send(
+        `%ch+circles/set:%cn  Value must be ${CIRCLE_STATUS_MIN}–${CIRCLE_STATUS_MAX}. Got ${value}.`,
+      );
       return;
     }
 
     let targetId = u.me.id;
     if (targetName) {
-      const target = await sheets.queryOne({ name: targetName } as Parameters<typeof sheets.queryOne>[0]);
-      if (!target) { u.send(`%ch+circles/set:%cn  No sheet for '${targetName}'.`); return; }
+      const target = await sheets.queryOne(
+        { name: targetName } as Parameters<typeof sheets.queryOne>[0],
+      );
+      if (!target) {
+        u.send(`%ch+circles/set:%cn  No sheet for '${targetName}'.`);
+        return;
+      }
       targetId = (target as ICharSheet).id;
     }
 
-    const sheet = await sheets.queryOne({ id: targetId } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
-    if (!sheet) { u.send("%ch+circles/set:%cn  No sheet found."); return; }
+    const sheet = await sheets.queryOne(
+      { id: targetId } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
+    if (!sheet) {
+      u.send("%ch+circles/set:%cn  No sheet found.");
+      return;
+    }
 
-    const result = await sheets.atomicModify(targetId, (current: ICharSheet) => ({
-      ...current,
-      circleStatus: adjustCircle(current.circleStatus, circle, value - current.circleStatus[circle]),
-      updatedAt: Date.now(),
-    }));
+    const result = await sheets.atomicModify(
+      targetId,
+      (current: ICharSheet) => ({
+        ...current,
+        circleStatus: adjustCircle(
+          current.circleStatus,
+          circle,
+          value - current.circleStatus[circle],
+        ),
+        updatedAt: Date.now(),
+      }),
+    );
 
-    u.send(`%ch+circles/set:%cn  %ch${circle}%cn status set to ${statusDisplay(result.circleStatus[circle])}`);
+    u.send(
+      `%ch+circles/set:%cn  %ch${circle}%cn status set to ${
+        statusDisplay(result.circleStatus[circle])
+      }`,
+    );
   },
 });
 
@@ -221,16 +331,26 @@ addCmd({
   help: "+factions  —  List your Faction affiliations.",
   pattern: /^\+factions$/i,
   exec: async (u) => {
-    const myFactions = await factions.query({ playerId: u.me.id } as Parameters<typeof factions.query>[0]);
+    const myFactions = await factions.query(
+      { playerId: u.me.id } as Parameters<typeof factions.query>[0],
+    );
 
     if (!myFactions.length) {
-      u.send("%ch+factions:%cn  No faction affiliations. Use +faction/add <circle>=<name> to add one.");
+      u.send(
+        "%ch+factions:%cn  No faction affiliations. Use +faction/add <circle>=<name> to add one.",
+      );
       return;
     }
 
-    const lines = [`%ch─── Faction Affiliations ─────────────────────────────%cn`];
+    const lines = [
+      `%ch─── Faction Affiliations ─────────────────────────────%cn`,
+    ];
     for (const f of myFactions) {
-      lines.push(`  %ch[${f.circle}]%cn  ${f.name}  ${statusDisplay(f.status)}  %ch[${f.id.slice(0, 8)}]%cn`);
+      lines.push(
+        `  %ch[${f.circle}]%cn  ${f.name}  ${statusDisplay(f.status)}  %ch[${
+          f.id.slice(0, 8)
+        }]%cn`,
+      );
       if (f.notes) lines.push(`    ${f.notes}`);
     }
 
@@ -251,7 +371,11 @@ addCmd({
     const name = (u.cmd.args[1] ?? "").trim();
 
     if (!CIRCLE_NAMES.includes(circle)) {
-      u.send(`%ch+faction/add:%cn  Unknown circle '${circle}'. Use: ${CIRCLE_NAMES.join(", ")}`);
+      u.send(
+        `%ch+faction/add:%cn  Unknown circle '${circle}'. Use: ${
+          CIRCLE_NAMES.join(", ")
+        }`,
+      );
       return;
     }
     if (!name) {
@@ -276,7 +400,11 @@ addCmd({
     };
 
     await factions.create(entry);
-    u.send(`%ch+faction/add:%cn  Added faction: %ch${name}%cn (${circle}, status +0)  [id: ${entry.id.slice(0, 8)}]`);
+    u.send(
+      `%ch+faction/add:%cn  Added faction: %ch${name}%cn (${circle}, status +0)  [id: ${
+        entry.id.slice(0, 8)
+      }]`,
+    );
   },
 });
 
@@ -297,7 +425,9 @@ addCmd({
       return;
     }
 
-    const all = await factions.query({ playerId: u.me.id } as Parameters<typeof factions.query>[0]);
+    const all = await factions.query(
+      { playerId: u.me.id } as Parameters<typeof factions.query>[0],
+    );
     const faction = all.find((f) => f.id.startsWith(fragment));
 
     if (!faction) {
@@ -325,7 +455,9 @@ addCmd({
   pattern: /^\+faction\/del\s+(\S+)$/i,
   exec: async (u) => {
     const fragment = (u.cmd.args[0] ?? "").trim();
-    const all = await factions.query({ playerId: u.me.id } as Parameters<typeof factions.query>[0]);
+    const all = await factions.query(
+      { playerId: u.me.id } as Parameters<typeof factions.query>[0],
+    );
     const faction = all.find((f) => f.id.startsWith(fragment));
 
     if (!faction) {
@@ -333,7 +465,9 @@ addCmd({
       return;
     }
 
-    await factions.delete({ id: faction.id } as Parameters<typeof factions.delete>[0]);
+    await factions.delete(
+      { id: faction.id } as Parameters<typeof factions.delete>[0],
+    );
     u.send(`%ch+faction/del:%cn  Removed %ch${faction.name}%cn.`);
   },
 });

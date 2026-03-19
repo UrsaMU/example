@@ -6,12 +6,12 @@ The four circles represent your standing with the city's major supernatural
 communities. Status runs from **−3** (hostile/shunned) to **+3** (trusted/
 respected).
 
-| Circle      | Who they are                              |
-|-------------|-------------------------------------------|
-| Mortalis    | Ordinary humans, mortal institutions      |
-| Night       | Vampires, the undead, creatures of night  |
-| Power       | Sorcerers, mages, wielders of arcane arts |
-| Wild        | Fae, spirits, the untamed supernatural    |
+| Circle   | Who they are                              |
+| -------- | ----------------------------------------- |
+| Mortalis | Ordinary humans, mortal institutions      |
+| Night    | Vampires, the undead, creatures of night  |
+| Power    | Sorcerers, mages, wielders of arcane arts |
+| Wild     | Fae, spirits, the untamed supernatural    |
 
 ```
 +circles                            view all circle status and factions

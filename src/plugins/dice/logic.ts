@@ -3,7 +3,12 @@
 export type StatName = "blood" | "heart" | "mind" | "spirit";
 export type Outcome = "miss" | "weak" | "strong";
 
-export const STAT_NAMES: readonly StatName[] = ["blood", "heart", "mind", "spirit"];
+export const STAT_NAMES: readonly StatName[] = [
+  "blood",
+  "heart",
+  "mind",
+  "spirit",
+];
 
 export interface RollResult {
   dice: [number, number];
@@ -15,10 +20,12 @@ export interface RollResult {
 }
 
 /** Map a final total to an Urban Shadows outcome. */
-export function computeOutcome(total: number): { outcome: Outcome; outcomeLabel: "6-" | "7-9" | "10+" } {
+export function computeOutcome(
+  total: number,
+): { outcome: Outcome; outcomeLabel: "6-" | "7-9" | "10+" } {
   if (total >= 10) return { outcome: "strong", outcomeLabel: "10+" };
-  if (total >= 7)  return { outcome: "weak",   outcomeLabel: "7-9" };
-  return                  { outcome: "miss",   outcomeLabel: "6-"  };
+  if (total >= 7) return { outcome: "weak", outcomeLabel: "7-9" };
+  return { outcome: "miss", outcomeLabel: "6-" };
 }
 
 /**

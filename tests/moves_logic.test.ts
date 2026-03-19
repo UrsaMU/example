@@ -1,8 +1,8 @@
 import { assertEquals, assertExists } from "@std/assert";
 import {
+  buildMoveIndex,
   extractStat,
   findMove,
-  buildMoveIndex,
   getSheetMoves,
   resolveMove,
 } from "../src/plugins/moves/logic.ts";
@@ -16,15 +16,24 @@ Deno.test("extractStat: 'roll with Heart' → heart", () => {
 });
 
 Deno.test("extractStat: 'roll with Blood' → blood", () => {
-  assertEquals(extractStat("When you lead allies, roll with Blood. On a 10+..."), "blood");
+  assertEquals(
+    extractStat("When you lead allies, roll with Blood. On a 10+..."),
+    "blood",
+  );
 });
 
 Deno.test("extractStat: 'roll with Mind' → mind", () => {
-  assertEquals(extractStat("When you infiltrate, roll with Mind. On a 10+..."), "mind");
+  assertEquals(
+    extractStat("When you infiltrate, roll with Mind. On a 10+..."),
+    "mind",
+  );
 });
 
 Deno.test("extractStat: 'roll with Spirit' → spirit", () => {
-  assertEquals(extractStat("When you reach out, roll with Spirit. On a 10+..."), "spirit");
+  assertEquals(
+    extractStat("When you reach out, roll with Spirit. On a 10+..."),
+    "spirit",
+  );
 });
 
 Deno.test("extractStat: case-insensitive match", () => {
@@ -33,7 +42,10 @@ Deno.test("extractStat: case-insensitive match", () => {
 });
 
 Deno.test("extractStat: no roll → null (passive)", () => {
-  assertEquals(extractStat("Your attacks gain +1 harm against supernatural creatures."), null);
+  assertEquals(
+    extractStat("Your attacks gain +1 harm against supernatural creatures."),
+    null,
+  );
 });
 
 Deno.test("extractStat: 'roll with Heart instead of Mind' → heart", () => {
@@ -147,7 +159,10 @@ Deno.test("getSheetMoves: cross-playbook move (hunter-deadly on aware sheet) is 
 });
 
 Deno.test("getSheetMoves: unknown move IDs are filtered out gracefully", () => {
-  const sheet: ICharSheet = { ...STUB_SHEET, selectedMoves: ["aware-i-know-a-guy", "bogus-move-id"] };
+  const sheet: ICharSheet = {
+    ...STUB_SHEET,
+    selectedMoves: ["aware-i-know-a-guy", "bogus-move-id"],
+  };
   const moves = getSheetMoves(sheet);
   assertEquals(moves.length, 1);
   assertEquals(moves[0].id, "aware-i-know-a-guy");
@@ -164,8 +179,8 @@ Deno.test("resolveMove: passive move (hunter-deadly) → no roll", () => {
 });
 
 Deno.test("resolveMove: rolling move (aware-i-know-a-guy) rolls Heart", () => {
-  const move   = findMove("aware-i-know-a-guy")!;
-  const roller = seqRoller([5, 5]);              // 5 + 5 + stat(1) = 11 → strong
+  const move = findMove("aware-i-know-a-guy")!;
+  const roller = seqRoller([5, 5]); // 5 + 5 + stat(1) = 11 → strong
   const result = resolveMove(move, 1, 0, roller);
   assertEquals(result.isPassive, false);
   assertEquals(result.stat, "heart");
@@ -176,8 +191,8 @@ Deno.test("resolveMove: rolling move (aware-i-know-a-guy) rolls Heart", () => {
 });
 
 Deno.test("resolveMove: rolling move with negative stat → miss", () => {
-  const move   = findMove("aware-the-lions-den")!; // rolls Mind
-  const roller = seqRoller([2, 2]);                // 2 + 2 + stat(-1) = 3 → miss
+  const move = findMove("aware-the-lions-den")!; // rolls Mind
+  const roller = seqRoller([2, 2]); // 2 + 2 + stat(-1) = 3 → miss
   const result = resolveMove(move, -1, 0, roller);
   assertEquals(result.stat, "mind");
   assertExists(result.roll);
@@ -186,8 +201,8 @@ Deno.test("resolveMove: rolling move with negative stat → miss", () => {
 });
 
 Deno.test("resolveMove: bonus is applied correctly", () => {
-  const move   = findMove("hunter-this-way")!;     // rolls Blood
-  const roller = seqRoller([3, 3]);                // 3 + 3 + stat(1) + bonus(2) = 9 → weak
+  const move = findMove("hunter-this-way")!; // rolls Blood
+  const roller = seqRoller([3, 3]); // 3 + 3 + stat(1) + bonus(2) = 9 → weak
   const result = resolveMove(move, 1, 2, roller);
   assertExists(result.roll);
   assertEquals(result.roll!.total, 9);
@@ -195,7 +210,7 @@ Deno.test("resolveMove: bonus is applied correctly", () => {
 });
 
 Deno.test("resolveMove: stat 0 with dice [4,4] → 8 → weak", () => {
-  const move   = findMove("fae-faerie-magic")!;    // rolls Spirit
+  const move = findMove("fae-faerie-magic")!; // rolls Spirit
   const roller = seqRoller([4, 4]);
   const result = resolveMove(move, 0, 0, roller);
   assertExists(result.roll);
@@ -206,14 +221,14 @@ Deno.test("resolveMove: stat 0 with dice [4,4] → 8 → weak", () => {
 // ─── Stat coverage across playbooks ──────────────────────────────────────────
 
 Deno.test("at least one move rolls each of the four stats", () => {
-  const index  = buildMoveIndex();
-  const stats  = new Set<string>();
+  const index = buildMoveIndex();
+  const stats = new Set<string>();
   for (const move of index.values()) {
     const s = extractStat(move.description);
     if (s) stats.add(s);
   }
-  assertEquals(stats.has("blood"),  true);
-  assertEquals(stats.has("heart"),  true);
-  assertEquals(stats.has("mind"),   true);
+  assertEquals(stats.has("blood"), true);
+  assertEquals(stats.has("heart"), true);
+  assertEquals(stats.has("mind"), true);
   assertEquals(stats.has("spirit"), true);
 });

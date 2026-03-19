@@ -8,17 +8,17 @@ read-then-write:
 
 ```typescript
 // Current pattern in modify():
-const items = await this.query(query);   // READ
+const items = await this.query(query); // READ
 for (const item of items) {
   // ... transform ...
-  await kv.set(this.getKey(item.id), plainData);  // WRITE (separate roundtrip)
+  await kv.set(this.getKey(item.id), plainData); // WRITE (separate roundtrip)
 }
 ```
 
 This means any plugin doing a read-modify-write cycle (which is essentially
 every plugin) is vulnerable to lost updates under concurrent access. The
-`getNextJobNumber()` counter increment in `src/plugins/jobs/mod.ts` has the
-same problem — two concurrent calls can read the same counter value and produce
+`getNextJobNumber()` counter increment in `src/plugins/jobs/mod.ts` has the same
+problem — two concurrent calls can read the same counter value and produce
 duplicate job numbers.
 
 Deno KV has native support for this via `kv.atomic()` with compare-and-swap
@@ -56,7 +56,7 @@ atomicIncrement(id: string): Promise<number>
 const entry = await kv.get<T>(key);
 const result = await kv
   .atomic()
-  .check(entry)                        // only commit if version unchanged
+  .check(entry) // only commit if version unchanged
   .set(key, transform(entry.value))
   .commit();
 
@@ -67,13 +67,13 @@ This gives you serialisable single-record updates with no external locking.
 
 ## Affected Areas
 
-| File | Location | Issue |
-|------|----------|-------|
-| `src/services/Database/database.ts` | `modify()` | needs `atomicModify()` added |
-| `src/interfaces/IDatabase.ts` | interface | needs new method signature |
-| `src/plugins/jobs/mod.ts` | `getNextJobNumber()` | should use `atomicIncrement()` |
-| `src/plugins/jobs/router.ts` | ~line 206 | PATCH handler does plain read-then-update |
-| `src/plugins/events/db.ts` | sequential ID generation | same racy counter pattern |
+| File                                | Location                 | Issue                                     |
+| ----------------------------------- | ------------------------ | ----------------------------------------- |
+| `src/services/Database/database.ts` | `modify()`               | needs `atomicModify()` added              |
+| `src/interfaces/IDatabase.ts`       | interface                | needs new method signature                |
+| `src/plugins/jobs/mod.ts`           | `getNextJobNumber()`     | should use `atomicIncrement()`            |
+| `src/plugins/jobs/router.ts`        | ~line 206                | PATCH handler does plain read-then-update |
+| `src/plugins/events/db.ts`          | sequential ID generation | same racy counter pattern                 |
 
 ## Out of Scope
 

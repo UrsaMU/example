@@ -1,14 +1,14 @@
 import { addCmd } from "ursamu/app";
 import { mu } from "ursamu";
 import { sheets } from "../playbooks/db.ts";
-import { sessions, sessAnswers } from "./db.ts";
+import { sessAnswers, sessions } from "./db.ts";
 import {
-  buildQuestionsForPlaybook,
-  scoreAnswers,
   allAnswered,
-  unansweredQuestions,
+  buildQuestionsForPlaybook,
   computeSessionXP,
   createAnswerRecord,
+  scoreAnswers,
+  unansweredQuestions,
 } from "./logic.ts";
 import { XP_PER_ADVANCE } from "../advancement/logic.ts";
 import type { ICharSheet } from "../playbooks/schema.ts";
@@ -16,11 +16,11 @@ import type { ISession, ISessionAnswers } from "./schema.ts";
 
 // --- Colour helpers -----------------------------------------------------------
 
-const H   = "%ch";
-const N   = "%cn";
-const G   = "%cg";
-const Y   = "%cy";
-const R   = "%cr";
+const H = "%ch";
+const N = "%cn";
+const G = "%cg";
+const Y = "%cy";
+const R = "%cr";
 const DIM = "%cx";
 
 function bar(width = 60): string {
@@ -28,35 +28,47 @@ function bar(width = 60): string {
 }
 
 function xpBar(xp: number, max = XP_PER_ADVANCE): string {
-  return Array.from({ length: max }, (_, i) => i < xp ? `${H}${G}(*)${N}` : "( )").join("");
+  return Array.from(
+    { length: max },
+    (_, i) => i < xp ? `${H}${G}(*)${N}` : "( )",
+  ).join("");
 }
 
 function isStaff(u: { me: { flags: Set<string> } }): boolean {
-  return u.me.flags.has("admin") || u.me.flags.has("wizard") || u.me.flags.has("superuser");
+  return u.me.flags.has("admin") || u.me.flags.has("wizard") ||
+    u.me.flags.has("superuser");
 }
 
 // --- Helpers ------------------------------------------------------------------
 
 async function activeSession(): Promise<ISession | null> {
-  const all = await sessions.query({ status: "active" } as Parameters<typeof sessions.query>[0]);
+  const all = await sessions.query(
+    { status: "active" } as Parameters<typeof sessions.query>[0],
+  );
   return (all[0] as ISession | undefined) ?? null;
 }
 
 async function endedSession(): Promise<ISession | null> {
   // Most recent ended session (the one players should be answering)
-  const all = await sessions.query({ status: "ended" } as Parameters<typeof sessions.query>[0]);
+  const all = await sessions.query(
+    { status: "ended" } as Parameters<typeof sessions.query>[0],
+  );
   if (!all.length) return null;
-  return (all as ISession[]).sort((a, b) => (b.endedAt ?? 0) - (a.endedAt ?? 0))[0];
+  return (all as ISession[]).sort((a, b) =>
+    (b.endedAt ?? 0) - (a.endedAt ?? 0)
+  )[0];
 }
 
 async function currentAnswerRecord(
   playerId: string,
   sess: ISession,
 ): Promise<ISessionAnswers | null> {
-  const rec = await sessAnswers.queryOne({
-    playerId,
-    sessionId: sess.id,
-  } as Parameters<typeof sessAnswers.queryOne>[0]);
+  const rec = await sessAnswers.queryOne(
+    {
+      playerId,
+      sessionId: sess.id,
+    } as Parameters<typeof sessAnswers.queryOne>[0],
+  );
   return rec ? (rec as ISessionAnswers) : null;
 }
 
@@ -94,25 +106,37 @@ addCmd({
   pattern: /^\+session$/i,
   exec: async (u) => {
     const active = await activeSession();
-    const ended  = active ? null : await endedSession();
-    const sess   = active ?? ended;
+    const ended = active ? null : await endedSession();
+    const sess = active ?? ended;
 
     if (!sess) {
-      u.send(`${H}+session:${N}  No session is currently active. Staff can start one with ${H}+session/start${N}.`);
+      u.send(
+        `${H}+session:${N}  No session is currently active. Staff can start one with ${H}+session/start${N}.`,
+      );
       return;
     }
 
     const lines = [
       bar(),
       `  ${H}Session #${sess.number}${N}` +
-        (sess.title ? `: ${sess.title}` : "") +
-        `  — ${active ? `${G}${H}ACTIVE${N}` : `${Y}${H}ENDED — questions open${N}`}`,
-      `  Started by ${H}${sess.startedByName}${N}  at ${new Date(sess.startedAt).toUTCString()}`,
+      (sess.title ? `: ${sess.title}` : "") +
+      `  — ${
+        active ? `${G}${H}ACTIVE${N}` : `${Y}${H}ENDED — questions open${N}`
+      }`,
+      `  Started by ${H}${sess.startedByName}${N}  at ${
+        new Date(sess.startedAt).toUTCString()
+      }`,
     ];
 
     if (sess.status === "ended" && sess.endedAt) {
-      lines.push(`  Ended by ${H}${sess.endedByName ?? "?"}${N}  at ${new Date(sess.endedAt).toUTCString()}`);
-      lines.push(`  Use ${H}+session/questions${N} to answer end-of-session questions and earn XP.`);
+      lines.push(
+        `  Ended by ${H}${sess.endedByName ?? "?"}${N}  at ${
+          new Date(sess.endedAt).toUTCString()
+        }`,
+      );
+      lines.push(
+        `  Use ${H}+session/questions${N} to answer end-of-session questions and earn XP.`,
+      );
     }
 
     lines.push(bar());
@@ -129,17 +153,22 @@ addCmd({
   help: "+session/start [title]  —  [Staff] Open a new session.",
   pattern: /^\+session\/start(?:\s+(.+))?$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send(`${H}+session/start:${N}  Staff only.`); return; }
-
-    const existing = await activeSession();
-    if (existing) {
-      u.send(`${H}+session/start:${N}  Session #${existing.number} is already active. End it first with ${H}+session/end${N}.`);
+    if (!isStaff(u)) {
+      u.send(`${H}+session/start:${N}  Staff only.`);
       return;
     }
 
-    const title  = (u.cmd.args[0] ?? "").trim();
+    const existing = await activeSession();
+    if (existing) {
+      u.send(
+        `${H}+session/start:${N}  Session #${existing.number} is already active. End it first with ${H}+session/end${N}.`,
+      );
+      return;
+    }
+
+    const title = (u.cmd.args[0] ?? "").trim();
     const number = await nextSessionNumber();
-    const now    = Date.now();
+    const now = Date.now();
 
     const sess: ISession = {
       id: crypto.randomUUID(),
@@ -168,14 +197,20 @@ addCmd({
 addCmd({
   name: "+session/end",
   category: "Urban Shadows",
-  help: "+session/end  —  [Staff] End the current session and open end-of-session questions.",
+  help:
+    "+session/end  —  [Staff] End the current session and open end-of-session questions.",
   pattern: /^\+session\/end$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send(`${H}+session/end:${N}  Staff only.`); return; }
+    if (!isStaff(u)) {
+      u.send(`${H}+session/end:${N}  Staff only.`);
+      return;
+    }
 
     const sess = await activeSession();
     if (!sess) {
-      u.send(`${H}+session/end:${N}  No active session. Start one with ${H}+session/start${N}.`);
+      u.send(
+        `${H}+session/end:${N}  No active session. Start one with ${H}+session/start${N}.`,
+      );
       return;
     }
 
@@ -183,14 +218,21 @@ addCmd({
     await sessions.modify(
       { id: sess.id } as Parameters<typeof sessions.modify>[0],
       "$set",
-      { status: "ended", endedAt: now, endedBy: u.me.id, endedByName: u.me.name ?? u.me.id },
+      {
+        status: "ended",
+        endedAt: now,
+        endedBy: u.me.id,
+        endedByName: u.me.name ?? u.me.id,
+      },
     );
 
     mu().game.broadcast(
       `${H}Session #${sess.number}${N} has ended. ` +
-      `Use ${H}+session/questions${N} to answer end-of-session questions and earn XP!`,
+        `Use ${H}+session/questions${N} to answer end-of-session questions and earn XP!`,
     );
-    u.send(`${H}+session/end:${N}  ${Y}${H}Session #${sess.number} ended.${N}  Players have been notified.`);
+    u.send(
+      `${H}+session/end:${N}  ${Y}${H}Session #${sess.number} ended.${N}  Players have been notified.`,
+    );
   },
 });
 
@@ -205,29 +247,35 @@ addCmd({
   exec: async (u) => {
     const sess = await endedSession();
     if (!sess) {
-      u.send(`${H}+session/questions:${N}  No session is awaiting answers right now.`);
+      u.send(
+        `${H}+session/questions:${N}  No session is awaiting answers right now.`,
+      );
       return;
     }
 
-    const sheet = await sheets.queryOne({ id: u.me.id } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
+    const sheet = await sheets.queryOne(
+      { id: u.me.id } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
     if (!sheet || sheet.status !== "approved") {
-      u.send(`${H}+session/questions:${N}  You need an approved character to answer session questions.`);
+      u.send(
+        `${H}+session/questions:${N}  You need an approved character to answer session questions.`,
+      );
       return;
     }
 
-    const rec       = await getOrCreateAnswerRecord(sheet, sess);
+    const rec = await getOrCreateAnswerRecord(sheet, sess);
     const questions = buildQuestionsForPlaybook(sheet.playbookId);
 
     if (rec.submittedAt) {
       u.send(
         `${H}+session/questions:${N}  You already submitted answers for Session #${sess.number}. ` +
-        `XP earned: ${G}${H}+${rec.xpEarned}${N}  ${xpBar(sheet.xp)}`,
+          `XP earned: ${G}${H}+${rec.xpEarned}${N}  ${xpBar(sheet.xp)}`,
       );
       return;
     }
 
     const yesCount = scoreAnswers(questions, rec.answers);
-    const lines    = [
+    const lines = [
       bar(),
       `  ${H}End-of-Session Questions — Session #${sess.number}${N}`,
       `  Answer with ${H}+session/answer <#>=yes${N} or ${H}+session/answer <#>=no${N}`,
@@ -237,15 +285,18 @@ addCmd({
 
     questions.forEach((q, i) => {
       const ans = rec.answers[q.id];
-      const marker =
-        ans === true  ? `${G}${H}[YES]${N}` :
-        ans === false ? `${R}[NO] ${N}`      :
-                        `${DIM}[???]${N}`;
+      const marker = ans === true
+        ? `${G}${H}[YES]${N}`
+        : ans === false
+        ? `${R}[NO] ${N}`
+        : `${DIM}[???]${N}`;
       lines.push(`  ${marker} ${H}${i + 1}.${N} ${q.text}`);
     });
 
     lines.push(bar());
-    lines.push(`  ${H}${yesCount}${N} yes answer(s) so far  — potential +${yesCount} XP`);
+    lines.push(
+      `  ${H}${yesCount}${N} yes answer(s) so far  — potential +${yesCount} XP`,
+    );
     lines.push(bar());
 
     u.send(lines.join("\n"));
@@ -258,36 +309,47 @@ addCmd({
 addCmd({
   name: "+session/answer",
   category: "Urban Shadows",
-  help: "+session/answer <#>=yes|no  —  Answer an end-of-session question by number.",
+  help:
+    "+session/answer <#>=yes|no  —  Answer an end-of-session question by number.",
   pattern: /^\+session\/answer\s+(\d+)=(yes|no)$/i,
   exec: async (u) => {
-    const n   = parseInt(u.cmd.args[0] ?? "0", 10);
+    const n = parseInt(u.cmd.args[0] ?? "0", 10);
     const ans = (u.cmd.args[1] ?? "").toLowerCase() === "yes";
 
     const sess = await endedSession();
     if (!sess) {
-      u.send(`${H}+session/answer:${N}  No session is awaiting answers right now.`);
+      u.send(
+        `${H}+session/answer:${N}  No session is awaiting answers right now.`,
+      );
       return;
     }
 
-    const sheet = await sheets.queryOne({ id: u.me.id } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
+    const sheet = await sheets.queryOne(
+      { id: u.me.id } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
     if (!sheet || sheet.status !== "approved") {
-      u.send(`${H}+session/answer:${N}  You need an approved character to answer session questions.`);
+      u.send(
+        `${H}+session/answer:${N}  You need an approved character to answer session questions.`,
+      );
       return;
     }
 
     const rec = await getOrCreateAnswerRecord(sheet, sess);
 
     if (rec.submittedAt) {
-      u.send(`${H}+session/answer:${N}  You've already submitted answers for this session.`);
+      u.send(
+        `${H}+session/answer:${N}  You've already submitted answers for this session.`,
+      );
       return;
     }
 
     const questions = buildQuestionsForPlaybook(sheet.playbookId);
-    const question  = questions[n - 1];
+    const question = questions[n - 1];
 
     if (!question) {
-      u.send(`${H}+session/answer:${N}  No question #${n}. Use ${H}+session/questions${N} to see the list.`);
+      u.send(
+        `${H}+session/answer:${N}  No question #${n}. Use ${H}+session/questions${N} to see the list.`,
+      );
       return;
     }
 
@@ -299,7 +361,9 @@ addCmd({
     );
 
     const marker = ans ? `${G}${H}YES${N}` : `${R}NO${N}`;
-    u.send(`${H}+session/answer:${N}  Q${n} — ${marker}. Use ${H}+session/done${N} when finished.`);
+    u.send(
+      `${H}+session/answer:${N}  Q${n} — ${marker}. Use ${H}+session/done${N} when finished.`,
+    );
   },
 });
 
@@ -314,36 +378,46 @@ addCmd({
   exec: async (u) => {
     const sess = await endedSession();
     if (!sess) {
-      u.send(`${H}+session/done:${N}  No session is awaiting answers right now.`);
+      u.send(
+        `${H}+session/done:${N}  No session is awaiting answers right now.`,
+      );
       return;
     }
 
-    const sheet = await sheets.queryOne({ id: u.me.id } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
+    const sheet = await sheets.queryOne(
+      { id: u.me.id } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
     if (!sheet || sheet.status !== "approved") {
-      u.send(`${H}+session/done:${N}  You need an approved character to collect session XP.`);
+      u.send(
+        `${H}+session/done:${N}  You need an approved character to collect session XP.`,
+      );
       return;
     }
 
     const rec = await currentAnswerRecord(sheet.id, sess);
     if (!rec) {
-      u.send(`${H}+session/done:${N}  Use ${H}+session/questions${N} to answer questions first.`);
+      u.send(
+        `${H}+session/done:${N}  Use ${H}+session/questions${N} to answer questions first.`,
+      );
       return;
     }
 
     if (rec.submittedAt) {
-      u.send(`${H}+session/done:${N}  Already submitted for Session #${sess.number}. You earned ${G}${H}+${rec.xpEarned} XP${N}.`);
+      u.send(
+        `${H}+session/done:${N}  Already submitted for Session #${sess.number}. You earned ${G}${H}+${rec.xpEarned} XP${N}.`,
+      );
       return;
     }
 
-    const questions  = buildQuestionsForPlaybook(sheet.playbookId);
+    const questions = buildQuestionsForPlaybook(sheet.playbookId);
     const unanswered = unansweredQuestions(questions, rec.answers);
 
     if (unanswered.length) {
       const nums = unanswered.map((q) => questions.indexOf(q) + 1).join(", ");
       u.send(
         `${H}+session/done:${N}  ${unanswered.length} question(s) unanswered (${nums}). ` +
-        `Answer them or they count as No.  ` +
-        `Use ${H}+session/done/force${N} to submit now treating blanks as No.`,
+          `Answer them or they count as No.  ` +
+          `Use ${H}+session/done/force${N} to submit now treating blanks as No.`,
       );
       return;
     }
@@ -367,7 +441,9 @@ addCmd({
       return;
     }
 
-    const sheet = await sheets.queryOne({ id: u.me.id } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
+    const sheet = await sheets.queryOne(
+      { id: u.me.id } as Parameters<typeof sheets.queryOne>[0],
+    ) as ICharSheet | null;
     if (!sheet || sheet.status !== "approved") {
       u.send(`${H}+session/done/force:${N}  You need an approved character.`);
       return;
@@ -375,7 +451,9 @@ addCmd({
 
     const rec = await getOrCreateAnswerRecord(sheet, sess);
     if (rec.submittedAt) {
-      u.send(`${H}+session/done/force:${N}  Already submitted for Session #${sess.number}.`);
+      u.send(
+        `${H}+session/done/force:${N}  Already submitted for Session #${sess.number}.`,
+      );
       return;
     }
 
@@ -394,8 +472,8 @@ async function _submitAnswers(
   sess: ISession,
 ): Promise<void> {
   const xpEarned = computeSessionXP(questions, rec.answers, sheet.xp);
-  const newXP    = sheet.xp + xpEarned;
-  const now      = Date.now();
+  const newXP = sheet.xp + xpEarned;
+  const now = Date.now();
 
   // Persist the answer record
   await sessAnswers.modify(
@@ -413,18 +491,22 @@ async function _submitAnswers(
     );
   }
 
-  const yesCount  = scoreAnswers(questions, rec.answers);
+  const yesCount = scoreAnswers(questions, rec.answers);
   const xpDisplay = xpEarned > 0
     ? `${G}${H}+${xpEarned} XP!${N}  ${xpBar(newXP)}`
     : `${DIM}+0 XP${N}  (XP bar full or no yes answers)`;
 
-  u.send([
-    bar(),
-    `  ${H}Session #${sess.number} — Answers submitted${N}`,
-    `  ${yesCount} yes answer(s) -> ${xpDisplay}  (${newXP}/${XP_PER_ADVANCE})`,
-    newXP >= XP_PER_ADVANCE ? `  ${G}${H}You can spend XP! Use +advance to see options.${N}` : "",
-    bar(),
-  ].filter(Boolean).join("\n"));
+  u.send(
+    [
+      bar(),
+      `  ${H}Session #${sess.number} — Answers submitted${N}`,
+      `  ${yesCount} yes answer(s) -> ${xpDisplay}  (${newXP}/${XP_PER_ADVANCE})`,
+      newXP >= XP_PER_ADVANCE
+        ? `  ${G}${H}You can spend XP! Use +advance to see options.${N}`
+        : "",
+      bar(),
+    ].filter(Boolean).join("\n"),
+  );
 }
 
 // --- +session/list ------------------------------------------------------------
@@ -436,9 +518,14 @@ addCmd({
   help: "+session/list  —  [Staff] List all sessions.",
   pattern: /^\+session\/list$/i,
   exec: async (u) => {
-    if (!isStaff(u)) { u.send(`${H}+session/list:${N}  Staff only.`); return; }
+    if (!isStaff(u)) {
+      u.send(`${H}+session/list:${N}  Staff only.`);
+      return;
+    }
 
-    const all = (await sessions.query() as ISession[]).sort((a, b) => b.number - a.number);
+    const all = (await sessions.query() as ISession[]).sort((a, b) =>
+      b.number - a.number
+    );
     if (!all.length) {
       u.send(`${H}+session/list:${N}  No sessions recorded yet.`);
       return;
@@ -450,7 +537,11 @@ addCmd({
         ? `${G}${H}active${N}`
         : `${DIM}ended${N}`;
       const title = s.title ? ` "${s.title}"` : "";
-      lines.push(`  ${H}#${s.number}${N}${title}  ${statusTag}  ${DIM}${new Date(s.startedAt).toUTCString()}${N}`);
+      lines.push(
+        `  ${H}#${s.number}${N}${title}  ${statusTag}  ${DIM}${
+          new Date(s.startedAt).toUTCString()
+        }${N}`,
+      );
     }
     lines.push(bar());
     u.send(lines.join("\n"));
@@ -463,23 +554,33 @@ addCmd({
 addCmd({
   name: "+session/answers",
   category: "Urban Shadows",
-  help: "+session/answers [<player>]  —  View session answer history. Staff can specify a player.",
+  help:
+    "+session/answers [<player>]  —  View session answer history. Staff can specify a player.",
   pattern: /^\+session\/answers(?:\s+(.+))?$/i,
   exec: async (u) => {
     const targetName = (u.cmd.args[0] ?? "").trim();
-    let targetId     = u.me.id;
+    let targetId = u.me.id;
 
     if (targetName) {
       if (!isStaff(u)) {
-        u.send(`${H}+session/answers:${N}  Only staff can view other players' answers.`);
+        u.send(
+          `${H}+session/answers:${N}  Only staff can view other players' answers.`,
+        );
         return;
       }
-      const target = await sheets.queryOne({ name: targetName } as Parameters<typeof sheets.queryOne>[0]) as ICharSheet | null;
-      if (!target) { u.send(`${H}+session/answers:${N}  No sheet for '${targetName}'.`); return; }
+      const target = await sheets.queryOne(
+        { name: targetName } as Parameters<typeof sheets.queryOne>[0],
+      ) as ICharSheet | null;
+      if (!target) {
+        u.send(`${H}+session/answers:${N}  No sheet for '${targetName}'.`);
+        return;
+      }
       targetId = target.id;
     }
 
-    const records = (await sessAnswers.query({ playerId: targetId } as Parameters<typeof sessAnswers.query>[0]) as ISessionAnswers[])
+    const records = (await sessAnswers.query(
+      { playerId: targetId } as Parameters<typeof sessAnswers.query>[0],
+    ) as ISessionAnswers[])
       .sort((a, b) => b.sessionNumber - a.sessionNumber);
 
     if (!records.length) {
@@ -489,7 +590,9 @@ addCmd({
 
     const lines = [bar(), `  ${H}Session Answer History${N}`, bar()];
     for (const r of records.slice(0, 10)) {
-      const submitted = r.submittedAt ? `${G}+${r.xpEarned} XP${N}` : `${Y}pending${N}`;
+      const submitted = r.submittedAt
+        ? `${G}+${r.xpEarned} XP${N}`
+        : `${Y}pending${N}`;
       lines.push(`  ${H}Session #${r.sessionNumber}${N}  ${submitted}`);
     }
     lines.push(bar());

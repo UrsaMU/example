@@ -5,12 +5,12 @@ export { DOWNTIME_TYPES };
 export type { DowntimeActionType };
 
 export const DOWNTIME_TYPE_LABELS: Record<DowntimeActionType, string> = {
-  "recover":      "Recover (heal harm)",
-  "indulge":      "Indulge Your Vice (clear corruption)",
-  "consolidate":  "Consolidate Power (circle status)",
+  "recover": "Recover (heal harm)",
+  "indulge": "Indulge Your Vice (clear corruption)",
+  "consolidate": "Consolidate Power (circle status)",
   "work-contact": "Work a Contact",
-  "pursue-lead":  "Pursue a Lead",
-  "other":        "Other (freeform)",
+  "pursue-lead": "Pursue a Lead",
+  "other": "Other (freeform)",
 };
 
 /** Type guard: returns true if s is a valid DowntimeActionType. */

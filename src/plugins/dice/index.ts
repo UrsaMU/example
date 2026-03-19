@@ -7,7 +7,8 @@ import "./commands.ts";
 const dicePlugin: IPlugin = {
   name: "urban-shadows-dice",
   version: "1.0.0",
-  description: "Urban Shadows dice roller — 2d6 + stat with miss/weak/strong outcomes",
+  description:
+    "Urban Shadows dice roller — 2d6 + stat with miss/weak/strong outcomes",
 
   init: () => {
     const handler = makeDiceRouter(sheets);

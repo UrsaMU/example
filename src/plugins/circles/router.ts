@@ -1,7 +1,11 @@
 import type { ICharSheet } from "../playbooks/schema.ts";
-import { CIRCLE_NAMES, CIRCLE_STATUS_MIN, CIRCLE_STATUS_MAX } from "./schema.ts";
-import type { IFactionEntry, CircleName } from "./schema.ts";
-import { markCircle, improveCircle, adjustCircle } from "./logic.ts";
+import {
+  CIRCLE_NAMES,
+  CIRCLE_STATUS_MAX,
+  CIRCLE_STATUS_MIN,
+} from "./schema.ts";
+import type { CircleName, IFactionEntry } from "./schema.ts";
+import { adjustCircle, improveCircle, markCircle } from "./logic.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -12,7 +16,10 @@ function ok(data: unknown, status = 200): Response {
 }
 
 function err(msg: string, status = 400): Response {
-  return new Response(JSON.stringify({ error: msg }), { status, headers: JSON_H });
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: JSON_H,
+  });
 }
 
 function isCircleName(s: string): s is CircleName {
@@ -22,20 +29,34 @@ function isCircleName(s: string): s is CircleName {
 // ─── Injectable store interfaces ─────────────────────────────────────────────
 
 export interface SheetStore {
-  queryOne(q: Partial<ICharSheet>): Promise<ICharSheet | null | undefined | false>;
-  modify(q: Partial<ICharSheet>, op: string, update: Partial<ICharSheet>): Promise<void>;
+  queryOne(
+    q: Partial<ICharSheet>,
+  ): Promise<ICharSheet | null | undefined | false>;
+  modify(
+    q: Partial<ICharSheet>,
+    op: string,
+    update: Partial<ICharSheet>,
+  ): Promise<void>;
 }
 
 export interface FactionStore {
   query(q?: Partial<IFactionEntry>): Promise<IFactionEntry[]>;
-  queryOne(q: Partial<IFactionEntry>): Promise<IFactionEntry | null | undefined | false>;
+  queryOne(
+    q: Partial<IFactionEntry>,
+  ): Promise<IFactionEntry | null | undefined | false>;
   create(record: IFactionEntry): Promise<IFactionEntry>;
-  modify(q: Partial<IFactionEntry>, op: string, update: Partial<IFactionEntry>): Promise<void>;
+  modify(
+    q: Partial<IFactionEntry>,
+    op: string,
+    update: Partial<IFactionEntry>,
+  ): Promise<void>;
   delete(q: Partial<IFactionEntry>): Promise<void>;
 }
 
 export interface PlayerStore {
-  queryOne(q: Record<string, unknown>): Promise<{ flags?: string } | null | undefined | false>;
+  queryOne(
+    q: Record<string, unknown>,
+  ): Promise<{ flags?: string } | null | undefined | false>;
 }
 
 // ─── Staff check ──────────────────────────────────────────────────────────────
@@ -99,18 +120,34 @@ export function makeCirclesRouter(
     if (path === "/api/v1/circles/mark" && method === "POST") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved", 403);
+      }
 
       let body: Record<string, unknown>;
-      try { body = await req.json(); } catch { return err("Invalid JSON"); }
+      try {
+        body = await req.json();
+      } catch {
+        return err("Invalid JSON");
+      }
 
       const circle = typeof body.circle === "string" ? body.circle.trim() : "";
-      if (!isCircleName(circle)) return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      if (!isCircleName(circle)) {
+        return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      }
 
       const updated = markCircle(sheet.circleStatus, circle);
-      if (!updated) return err(`${circle} status is already at minimum (${CIRCLE_STATUS_MIN})`, 409);
+      if (!updated) {
+        return err(
+          `${circle} status is already at minimum (${CIRCLE_STATUS_MIN})`,
+          409,
+        );
+      }
 
-      await sheetDb.modify({ id: userId }, "$set", { circleStatus: updated, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        circleStatus: updated,
+        updatedAt: Date.now(),
+      });
       return ok({ circleStatus: updated, marked: circle });
     }
 
@@ -119,18 +156,34 @@ export function makeCirclesRouter(
     if (path === "/api/v1/circles/improve" && method === "POST") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved", 403);
+      }
 
       let body: Record<string, unknown>;
-      try { body = await req.json(); } catch { return err("Invalid JSON"); }
+      try {
+        body = await req.json();
+      } catch {
+        return err("Invalid JSON");
+      }
 
       const circle = typeof body.circle === "string" ? body.circle.trim() : "";
-      if (!isCircleName(circle)) return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      if (!isCircleName(circle)) {
+        return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      }
 
       const updated = improveCircle(sheet.circleStatus, circle);
-      if (!updated) return err(`${circle} status is already at maximum (${CIRCLE_STATUS_MAX})`, 409);
+      if (!updated) {
+        return err(
+          `${circle} status is already at maximum (${CIRCLE_STATUS_MAX})`,
+          409,
+        );
+      }
 
-      await sheetDb.modify({ id: userId }, "$set", { circleStatus: updated, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        circleStatus: updated,
+        updatedAt: Date.now(),
+      });
       return ok({ circleStatus: updated, improved: circle });
     }
 
@@ -139,19 +192,30 @@ export function makeCirclesRouter(
     if (path === "/api/v1/circles/adjust" && method === "POST") {
       const sheet = await ownSheet();
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved", 403);
+      }
 
       let body: Record<string, unknown>;
-      try { body = await req.json(); } catch { return err("Invalid JSON"); }
+      try {
+        body = await req.json();
+      } catch {
+        return err("Invalid JSON");
+      }
 
       const circle = typeof body.circle === "string" ? body.circle.trim() : "";
-      if (!isCircleName(circle)) return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      if (!isCircleName(circle)) {
+        return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      }
 
       if (typeof body.delta !== "number") return err("delta must be a number");
       const delta = Math.round(body.delta);
 
       const updated = adjustCircle(sheet.circleStatus, circle, delta);
-      await sheetDb.modify({ id: userId }, "$set", { circleStatus: updated, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        circleStatus: updated,
+        updatedAt: Date.now(),
+      });
       return ok({ circleStatus: updated, adjusted: circle, delta });
     }
 
@@ -164,17 +228,26 @@ export function makeCirclesRouter(
 
     if (path === "/api/v1/circles/factions" && method === "POST") {
       let body: Record<string, unknown>;
-      try { body = await req.json(); } catch { return err("Invalid JSON"); }
+      try {
+        body = await req.json();
+      } catch {
+        return err("Invalid JSON");
+      }
 
       const circle = typeof body.circle === "string" ? body.circle.trim() : "";
-      if (!isCircleName(circle)) return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      if (!isCircleName(circle)) {
+        return err(`circle must be one of: ${CIRCLE_NAMES.join(", ")}`);
+      }
 
       if (typeof body.name !== "string" || !body.name.trim()) {
         return err("faction name is required");
       }
 
       const status = typeof body.status === "number"
-        ? Math.max(CIRCLE_STATUS_MIN, Math.min(CIRCLE_STATUS_MAX, Math.round(body.status)))
+        ? Math.max(
+          CIRCLE_STATUS_MIN,
+          Math.min(CIRCLE_STATUS_MAX, Math.round(body.status)),
+        )
         : 0;
 
       const now = Date.now();
@@ -200,25 +273,37 @@ export function makeCirclesRouter(
       if (method === "PATCH") {
         const entry = await factionDb.queryOne({ id: factionId });
         if (!entry) return err("Faction not found", 404);
-        if ((entry as IFactionEntry).playerId !== userId && !(await isStaff(userId, playerDb))) {
+        if (
+          (entry as IFactionEntry).playerId !== userId &&
+          !(await isStaff(userId, playerDb))
+        ) {
           return err("Forbidden", 403);
         }
 
         let body: Record<string, unknown>;
-        try { body = await req.json(); } catch { return err("Invalid JSON"); }
+        try {
+          body = await req.json();
+        } catch {
+          return err("Invalid JSON");
+        }
 
         const update: Partial<IFactionEntry> = { updatedAt: Date.now() };
         if (typeof body.name === "string" && body.name.trim()) {
           update.name = body.name.trim();
         }
         if (typeof body.status === "number") {
-          update.status = Math.max(CIRCLE_STATUS_MIN, Math.min(CIRCLE_STATUS_MAX, Math.round(body.status)));
+          update.status = Math.max(
+            CIRCLE_STATUS_MIN,
+            Math.min(CIRCLE_STATUS_MAX, Math.round(body.status)),
+          );
         }
         if (typeof body.notes === "string") {
           update.notes = body.notes.trim();
         }
 
-        if (Object.keys(update).length === 1) return err("No valid fields to update");
+        if (Object.keys(update).length === 1) {
+          return err("No valid fields to update");
+        }
 
         await factionDb.modify({ id: factionId }, "$set", update);
         const updated = await factionDb.queryOne({ id: factionId });
@@ -228,7 +313,10 @@ export function makeCirclesRouter(
       if (method === "DELETE") {
         const entry = await factionDb.queryOne({ id: factionId });
         if (!entry) return err("Faction not found", 404);
-        if ((entry as IFactionEntry).playerId !== userId && !(await isStaff(userId, playerDb))) {
+        if (
+          (entry as IFactionEntry).playerId !== userId &&
+          !(await isStaff(userId, playerDb))
+        ) {
           return err("Forbidden", 403);
         }
         await factionDb.delete({ id: factionId });
@@ -262,21 +350,47 @@ export function makeCirclesRouter(
         if (!sheet) return err("Sheet not found", 404);
 
         let body: Record<string, unknown>;
-        try { body = await req.json(); } catch { return err("Invalid JSON"); }
+        try {
+          body = await req.json();
+        } catch {
+          return err("Invalid JSON");
+        }
 
         const update: Partial<ICharSheet> = { updatedAt: Date.now() };
 
         if (body.circleStatus && typeof body.circleStatus === "object") {
           const cs = body.circleStatus as Record<string, unknown>;
           update.circleStatus = {
-            mortalis: typeof cs.mortalis === "number" ? Math.max(CIRCLE_STATUS_MIN, Math.min(CIRCLE_STATUS_MAX, Math.round(cs.mortalis))) : (sheet as ICharSheet).circleStatus.mortalis,
-            night:    typeof cs.night    === "number" ? Math.max(CIRCLE_STATUS_MIN, Math.min(CIRCLE_STATUS_MAX, Math.round(cs.night)))    : (sheet as ICharSheet).circleStatus.night,
-            power:    typeof cs.power    === "number" ? Math.max(CIRCLE_STATUS_MIN, Math.min(CIRCLE_STATUS_MAX, Math.round(cs.power)))    : (sheet as ICharSheet).circleStatus.power,
-            wild:     typeof cs.wild     === "number" ? Math.max(CIRCLE_STATUS_MIN, Math.min(CIRCLE_STATUS_MAX, Math.round(cs.wild)))     : (sheet as ICharSheet).circleStatus.wild,
+            mortalis: typeof cs.mortalis === "number"
+              ? Math.max(
+                CIRCLE_STATUS_MIN,
+                Math.min(CIRCLE_STATUS_MAX, Math.round(cs.mortalis)),
+              )
+              : (sheet as ICharSheet).circleStatus.mortalis,
+            night: typeof cs.night === "number"
+              ? Math.max(
+                CIRCLE_STATUS_MIN,
+                Math.min(CIRCLE_STATUS_MAX, Math.round(cs.night)),
+              )
+              : (sheet as ICharSheet).circleStatus.night,
+            power: typeof cs.power === "number"
+              ? Math.max(
+                CIRCLE_STATUS_MIN,
+                Math.min(CIRCLE_STATUS_MAX, Math.round(cs.power)),
+              )
+              : (sheet as ICharSheet).circleStatus.power,
+            wild: typeof cs.wild === "number"
+              ? Math.max(
+                CIRCLE_STATUS_MIN,
+                Math.min(CIRCLE_STATUS_MAX, Math.round(cs.wild)),
+              )
+              : (sheet as ICharSheet).circleStatus.wild,
           };
         }
 
-        if (Object.keys(update).length === 1) return err("No valid fields to update");
+        if (Object.keys(update).length === 1) {
+          return err("No valid fields to update");
+        }
 
         await sheetDb.modify({ id: targetId }, "$set", update);
         const updated = await sheetDb.queryOne({ id: targetId });

@@ -9,21 +9,37 @@ function ok(data: unknown, status = 200): Response {
 }
 
 function err(msg: string, status = 400): Response {
-  return new Response(JSON.stringify({ error: msg }), { status, headers: JSON_H });
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: JSON_H,
+  });
 }
 
 // ─── Injectable store interfaces ─────────────────────────────────────────────
 
 export interface DebtStore {
   query(q?: Partial<IDebtRecord>): Promise<IDebtRecord[]>;
-  queryOne(q: Partial<IDebtRecord>): Promise<IDebtRecord | null | undefined | false>;
+  queryOne(
+    q: Partial<IDebtRecord>,
+  ): Promise<IDebtRecord | null | undefined | false>;
   create(record: IDebtRecord): Promise<IDebtRecord>;
-  modify(q: Partial<IDebtRecord>, op: string, update: Partial<IDebtRecord>): Promise<void>;
+  modify(
+    q: Partial<IDebtRecord>,
+    op: string,
+    update: Partial<IDebtRecord>,
+  ): Promise<void>;
   delete(q: Partial<IDebtRecord>): Promise<void>;
 }
 
 export interface PlayerStore {
-  queryOne(q: Record<string, unknown>): Promise<{ flags?: string; data?: Record<string, unknown> } | null | undefined | false>;
+  queryOne(
+    q: Record<string, unknown>,
+  ): Promise<
+    | { flags?: string; data?: Record<string, unknown> }
+    | null
+    | undefined
+    | false
+  >;
 }
 
 // ─── Staff check ──────────────────────────────────────────────────────────────
@@ -86,7 +102,10 @@ export function makeDebtsRouter(debtDb: DebtStore, playerDb: PlayerStore) {
         return err("Invalid JSON");
       }
 
-      if (typeof body.direction !== "string" || !["owed", "owes"].includes(body.direction)) {
+      if (
+        typeof body.direction !== "string" ||
+        !["owed", "owes"].includes(body.direction)
+      ) {
         return err("direction must be 'owed' or 'owes'");
       }
       if (typeof body.otherName !== "string" || !body.otherName.trim()) {
@@ -107,7 +126,9 @@ export function makeDebtsRouter(debtDb: DebtStore, playerDb: PlayerStore) {
         ownerName,
         direction: body.direction as "owed" | "owes",
         otherName: (body.otherName as string).trim(),
-        otherId: typeof body.otherId === "string" ? body.otherId.trim() : undefined,
+        otherId: typeof body.otherId === "string"
+          ? body.otherId.trim()
+          : undefined,
         description: (body.description as string).trim(),
         cashedIn: false,
         createdAt: now,
@@ -189,7 +210,9 @@ export function makeDebtsRouter(debtDb: DebtStore, playerDb: PlayerStore) {
           update.otherId = body.otherId.trim() || undefined;
         }
 
-        if (Object.keys(update).length === 1) return err("No valid fields to update");
+        if (Object.keys(update).length === 1) {
+          return err("No valid fields to update");
+        }
 
         await debtDb.modify({ id: debtId }, "$set", update);
         const updated = await debtDb.queryOne({ id: debtId });

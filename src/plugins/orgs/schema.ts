@@ -6,8 +6,8 @@ export interface IOrg {
   name: string;
   circle: CircleName;
   description: string;
-  notes: string;       // staff-only private notes
-  isPublic: boolean;   // whether players can see this org
+  notes: string; // staff-only private notes
+  isPublic: boolean; // whether players can see this org
   createdBy: string;
   createdAt: number;
   updatedAt: number;

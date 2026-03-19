@@ -15,14 +15,14 @@ right. At 5 harm you are **incapacitated** and an MC job is filed automatically.
 +harm/armor <0-3>           set your armor value
 ```
 
-**Armor** reduces incoming harm. Set it when you gain or lose protective gear
-or abilities. Valid values: 0 (none), 1, 2, 3 (heavy).
+**Armor** reduces incoming harm. Set it when you gain or lose protective gear or
+abilities. Valid values: 0 (none), 1, 2, 3 (heavy).
 
 ## Corruption
 
-Your corruption track has **5 marks**. When it fills, you must take a
-Corruption advance to reset it to 0. Corruption advances are permanent and
-cumulative — they change who your character is.
+Your corruption track has **5 marks**. When it fills, you must take a Corruption
+advance to reset it to 0. Corruption advances are permanent and cumulative —
+they change who your character is.
 
 ```
 +corruption/mark                mark 1 corruption on yourself

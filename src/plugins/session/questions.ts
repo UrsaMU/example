@@ -15,12 +15,14 @@ export const STANDARD_QUESTIONS: IQuestion[] = [
   },
   {
     id: "q-learn",
-    text: "Did you learn something significant about a person, faction, or the supernatural?",
+    text:
+      "Did you learn something significant about a person, faction, or the supernatural?",
     standard: true,
   },
   {
     id: "q-circle",
-    text: "Did your Circle's interests or status shape your choices this session?",
+    text:
+      "Did your Circle's interests or status shape your choices this session?",
     standard: true,
   },
   {
@@ -35,7 +37,8 @@ export const STANDARD_QUESTIONS: IQuestion[] = [
 export const PLAYBOOK_QUESTIONS: Record<string, IQuestion> = {
   aware: {
     id: "q-aware",
-    text: "Did you expose a supernatural scheme or protect innocent people from harm?",
+    text:
+      "Did you expose a supernatural scheme or protect innocent people from harm?",
     standard: false,
     playbookId: "aware",
   },
@@ -47,13 +50,15 @@ export const PLAYBOOK_QUESTIONS: Record<string, IQuestion> = {
   },
   hunter: {
     id: "q-hunter",
-    text: "Did you hunt down a supernatural threat or defend innocents from harm?",
+    text:
+      "Did you hunt down a supernatural threat or defend innocents from harm?",
     standard: false,
     playbookId: "hunter",
   },
   imp: {
     id: "q-imp",
-    text: "Did a deal bring you significant profit, or blow up dangerously in your face?",
+    text:
+      "Did a deal bring you significant profit, or blow up dangerously in your face?",
     standard: false,
     playbookId: "imp",
   },
@@ -65,7 +70,8 @@ export const PLAYBOOK_QUESTIONS: Record<string, IQuestion> = {
   },
   spectre: {
     id: "q-spectre",
-    text: "Did you act on one of your anchors, or did an anchor cause trouble for you?",
+    text:
+      "Did you act on one of your anchors, or did an anchor cause trouble for you?",
     standard: false,
     playbookId: "spectre",
   },
@@ -89,19 +95,22 @@ export const PLAYBOOK_QUESTIONS: Record<string, IQuestion> = {
   },
   veteran: {
     id: "q-veteran",
-    text: "Did you protect someone weaker than yourself, or make a ruthless choice you'll have to live with?",
+    text:
+      "Did you protect someone weaker than yourself, or make a ruthless choice you'll have to live with?",
     standard: false,
     playbookId: "veteran",
   },
   wizard: {
     id: "q-wizard",
-    text: "Did you push your power past its safe limits and face the consequences?",
+    text:
+      "Did you push your power past its safe limits and face the consequences?",
     standard: false,
     playbookId: "wizard",
   },
   wolf: {
     id: "q-wolf",
-    text: "Did you defend your territory or your pack from a significant threat?",
+    text:
+      "Did you defend your territory or your pack from a significant threat?",
     standard: false,
     playbookId: "wolf",
   },

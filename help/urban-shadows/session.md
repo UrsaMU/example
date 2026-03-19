@@ -1,7 +1,7 @@
 # Session
 
-At the end of each session, the MC closes the session and players answer a
-short list of playbook-specific questions. Each "yes" answer earns XP.
+At the end of each session, the MC closes the session and players answer a short
+list of playbook-specific questions. Each "yes" answer earns XP.
 
 ## Player commands
 

@@ -1,6 +1,6 @@
 // ─── Session Logic (pure, no I/O) ─────────────────────────────────────────────
 
-import type { IQuestion, QuestionAnswer, ISessionAnswers } from "./schema.ts";
+import type { IQuestion, ISessionAnswers, QuestionAnswer } from "./schema.ts";
 import { buildQuestionsForPlaybook } from "./questions.ts";
 import { XP_PER_ADVANCE } from "../advancement/logic.ts";
 
@@ -26,7 +26,9 @@ export function allAnswered(
   questions: IQuestion[],
   answers: Record<string, QuestionAnswer>,
 ): boolean {
-  return questions.every((q) => answers[q.id] !== null && answers[q.id] !== undefined);
+  return questions.every((q) =>
+    answers[q.id] !== null && answers[q.id] !== undefined
+  );
 }
 
 /**
@@ -64,7 +66,9 @@ export function computeSessionXP(
 /**
  * Build a blank answers map (all null) for a given question set.
  */
-export function blankAnswers(questions: IQuestion[]): Record<string, QuestionAnswer> {
+export function blankAnswers(
+  questions: IQuestion[],
+): Record<string, QuestionAnswer> {
   return Object.fromEntries(questions.map((q) => [q.id, null]));
 }
 

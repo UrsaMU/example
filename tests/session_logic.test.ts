@@ -1,14 +1,17 @@
 import { assertEquals } from "@std/assert";
 import {
-  buildQuestionsForPlaybook,
-  scoreAnswers,
   allAnswered,
-  unansweredQuestions,
-  computeSessionXP,
   blankAnswers,
+  buildQuestionsForPlaybook,
+  computeSessionXP,
   createAnswerRecord,
+  scoreAnswers,
+  unansweredQuestions,
 } from "../src/plugins/session/logic.ts";
-import { STANDARD_QUESTIONS, PLAYBOOK_QUESTIONS } from "../src/plugins/session/questions.ts";
+import {
+  PLAYBOOK_QUESTIONS,
+  STANDARD_QUESTIONS,
+} from "../src/plugins/session/questions.ts";
 import { XP_PER_ADVANCE } from "../src/plugins/advancement/logic.ts";
 
 // ─── buildQuestionsForPlaybook ────────────────────────────────────────────────
@@ -32,7 +35,20 @@ Deno.test("buildQuestionsForPlaybook: 5th question is playbook-specific", () => 
 });
 
 Deno.test("buildQuestionsForPlaybook: all 12 known playbooks have 5 questions", () => {
-  const playbooks = ["aware","fae","hunter","imp","oracle","spectre","sworn","tainted","vamp","veteran","wizard","wolf"];
+  const playbooks = [
+    "aware",
+    "fae",
+    "hunter",
+    "imp",
+    "oracle",
+    "spectre",
+    "sworn",
+    "tainted",
+    "vamp",
+    "veteran",
+    "wizard",
+    "wolf",
+  ];
   for (const pb of playbooks) {
     const qs = buildQuestionsForPlaybook(pb);
     assertEquals(qs.length, 5, `${pb} should have 5 questions`);
@@ -50,16 +66,33 @@ Deno.test("STANDARD_QUESTIONS has exactly 4 entries", () => {
 });
 
 Deno.test("PLAYBOOK_QUESTIONS covers all 12 playbooks", () => {
-  const expected = ["aware","fae","hunter","imp","oracle","spectre","sworn","tainted","vamp","veteran","wizard","wolf"];
+  const expected = [
+    "aware",
+    "fae",
+    "hunter",
+    "imp",
+    "oracle",
+    "spectre",
+    "sworn",
+    "tainted",
+    "vamp",
+    "veteran",
+    "wizard",
+    "wolf",
+  ];
   for (const pb of expected) {
-    assertEquals(pb in PLAYBOOK_QUESTIONS, true, `missing playbook question for ${pb}`);
+    assertEquals(
+      pb in PLAYBOOK_QUESTIONS,
+      true,
+      `missing playbook question for ${pb}`,
+    );
   }
 });
 
 // ─── blankAnswers ─────────────────────────────────────────────────────────────
 
 Deno.test("blankAnswers: all values null", () => {
-  const qs  = buildQuestionsForPlaybook("aware");
+  const qs = buildQuestionsForPlaybook("aware");
   const ans = blankAnswers(qs);
   assertEquals(Object.keys(ans).length, 5);
   for (const v of Object.values(ans)) {
@@ -70,31 +103,31 @@ Deno.test("blankAnswers: all values null", () => {
 // ─── scoreAnswers ─────────────────────────────────────────────────────────────
 
 Deno.test("scoreAnswers: all yes → max score", () => {
-  const qs  = buildQuestionsForPlaybook("aware");
+  const qs = buildQuestionsForPlaybook("aware");
   const ans = Object.fromEntries(qs.map((q) => [q.id, true]));
   assertEquals(scoreAnswers(qs, ans), 5);
 });
 
 Deno.test("scoreAnswers: all no → 0", () => {
-  const qs  = buildQuestionsForPlaybook("aware");
+  const qs = buildQuestionsForPlaybook("aware");
   const ans = Object.fromEntries(qs.map((q) => [q.id, false]));
   assertEquals(scoreAnswers(qs, ans), 0);
 });
 
 Deno.test("scoreAnswers: mixed answers", () => {
-  const qs  = buildQuestionsForPlaybook("hunter");
+  const qs = buildQuestionsForPlaybook("hunter");
   const ans: Record<string, boolean | null> = {
-    "q-debt":   true,
-    "q-learn":  false,
+    "q-debt": true,
+    "q-learn": false,
     "q-circle": true,
-    "q-death":  false,
+    "q-death": false,
     "q-hunter": true,
   };
   assertEquals(scoreAnswers(qs, ans), 3);
 });
 
 Deno.test("scoreAnswers: null answers count as 0 (not yes)", () => {
-  const qs  = buildQuestionsForPlaybook("wolf");
+  const qs = buildQuestionsForPlaybook("wolf");
   const ans = blankAnswers(qs); // all null
   assertEquals(scoreAnswers(qs, ans), 0);
 });
@@ -107,25 +140,25 @@ Deno.test("allAnswered: blank answers → false", () => {
 });
 
 Deno.test("allAnswered: all answered yes → true", () => {
-  const qs  = buildQuestionsForPlaybook("fae");
+  const qs = buildQuestionsForPlaybook("fae");
   const ans = Object.fromEntries(qs.map((q) => [q.id, true]));
   assertEquals(allAnswered(qs, ans), true);
 });
 
 Deno.test("allAnswered: all no → true", () => {
-  const qs  = buildQuestionsForPlaybook("fae");
+  const qs = buildQuestionsForPlaybook("fae");
   const ans = Object.fromEntries(qs.map((q) => [q.id, false]));
   assertEquals(allAnswered(qs, ans), true);
 });
 
 Deno.test("allAnswered: one null remaining → false", () => {
-  const qs  = buildQuestionsForPlaybook("aware");
+  const qs = buildQuestionsForPlaybook("aware");
   const ans: Record<string, boolean | null> = {
-    "q-debt":   true,
-    "q-learn":  false,
+    "q-debt": true,
+    "q-learn": false,
     "q-circle": true,
-    "q-death":  false,
-    "q-aware":  null,   // not yet answered
+    "q-death": false,
+    "q-aware": null, // not yet answered
   };
   assertEquals(allAnswered(qs, ans), false);
 });
@@ -138,7 +171,7 @@ Deno.test("unansweredQuestions: all null → returns all", () => {
 });
 
 Deno.test("unansweredQuestions: one null → returns that one", () => {
-  const qs  = buildQuestionsForPlaybook("wizard");
+  const qs = buildQuestionsForPlaybook("wizard");
   const ans = Object.fromEntries(qs.map((q) => [q.id, true as boolean | null]));
   ans["q-wizard"] = null;
   const rem = unansweredQuestions(qs, ans);
@@ -149,32 +182,32 @@ Deno.test("unansweredQuestions: one null → returns that one", () => {
 // ─── computeSessionXP ────────────────────────────────────────────────────────
 
 Deno.test("computeSessionXP: 3 yes with 0 current XP → +3", () => {
-  const qs  = buildQuestionsForPlaybook("wolf");
+  const qs = buildQuestionsForPlaybook("wolf");
   const ans: Record<string, boolean | null> = {
-    "q-debt":   true,
-    "q-learn":  true,
+    "q-debt": true,
+    "q-learn": true,
     "q-circle": true,
-    "q-death":  false,
-    "q-wolf":   false,
+    "q-death": false,
+    "q-wolf": false,
   };
   assertEquals(computeSessionXP(qs, ans, 0), 3);
 });
 
 Deno.test("computeSessionXP: capped by XP_PER_ADVANCE ceiling", () => {
-  const qs  = buildQuestionsForPlaybook("wolf");
+  const qs = buildQuestionsForPlaybook("wolf");
   const ans = Object.fromEntries(qs.map((q) => [q.id, true])); // 5 yes
   // currentXP = 3, can only earn 2 more before hitting cap
   assertEquals(computeSessionXP(qs, ans, 3), 2);
 });
 
 Deno.test("computeSessionXP: XP bar already full → 0 earned", () => {
-  const qs  = buildQuestionsForPlaybook("wolf");
+  const qs = buildQuestionsForPlaybook("wolf");
   const ans = Object.fromEntries(qs.map((q) => [q.id, true]));
   assertEquals(computeSessionXP(qs, ans, XP_PER_ADVANCE), 0);
 });
 
 Deno.test("computeSessionXP: 0 yes → 0 earned regardless of XP", () => {
-  const qs  = buildQuestionsForPlaybook("vamp");
+  const qs = buildQuestionsForPlaybook("vamp");
   const ans = Object.fromEntries(qs.map((q) => [q.id, false]));
   assertEquals(computeSessionXP(qs, ans, 0), 0);
 });

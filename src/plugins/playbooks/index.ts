@@ -15,7 +15,9 @@ const playbooksPlugin: IPlugin = {
     const handler = makePlaybooksRouter(sheets, dbojs);
     registerPluginRoute("/api/v1/playbooks", handler);
     registerPluginRoute("/api/v1/chargen", handler);
-    console.log("[urban-shadows-playbooks] Playbooks + chargen routes registered");
+    console.log(
+      "[urban-shadows-playbooks] Playbooks + chargen routes registered",
+    );
     return Promise.resolve(true);
   },
 };

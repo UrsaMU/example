@@ -26,30 +26,30 @@ export interface IPlaybookMove {
 export interface IGearChoice {
   label: string;
   options?: string[]; // if present, player picks one
-  count?: number;     // how many to pick (default 1)
-  detail?: boolean;   // player fills in a description
+  count?: number; // how many to pick (default 1)
+  detail?: boolean; // player fills in a description
 }
 
 export interface IPlaybookFeatureDef {
-  key: string;             // key used in sheet.features
-  label: string;           // human display name
-  required: boolean;       // must be non-empty to submit
-  description?: string;    // staff-facing guidance
+  key: string; // key used in sheet.features
+  label: string; // human display name
+  required: boolean; // must be non-empty to submit
+  description?: string; // staff-facing guidance
 }
 
 export interface IPlaybookAdvance {
   id: string;
   label: string;
   description?: string;
-  maxTimes?: number;       // how many times it can be taken (default 1)
+  maxTimes?: number; // how many times it can be taken (default 1)
   statBoost?: keyof IStats; // if taking this advance gives +1 to a stat
-  major?: boolean;          // major advances require 5+ regular advances first
+  major?: boolean; // major advances require 5+ regular advances first
 }
 
 export interface IPlaybook {
-  id: string;              // e.g. "aware"
-  name: string;            // "The Aware"
-  circle: CircleName;      // home circle
+  id: string; // e.g. "aware"
+  name: string; // "The Aware"
+  circle: CircleName; // home circle
   tagline: string;
   demeanors: string[];
   baseStats: IStats;
@@ -58,12 +58,12 @@ export interface IPlaybook {
   introQuestions: string[];
   startingGear: IGearChoice[];
   startingDebts: string[];
-  letItOut: string[];      // let it out ability descriptions
+  letItOut: string[]; // let it out ability descriptions
   moves: IPlaybookMove[];
-  moveCount: number;       // total moves (incl. required) player must have at submit
+  moveCount: number; // total moves (incl. required) player must have at submit
   movesInstruction: string;
   featureDefs: IPlaybookFeatureDef[]; // playbook-specific features to fill in
-  advances: IPlaybookAdvance[];       // available advances for this playbook
+  advances: IPlaybookAdvance[]; // available advances for this playbook
 }
 
 // ─── Character Sheet ──────────────────────────────────────────────────────────
@@ -76,19 +76,19 @@ export interface IHarm {
 }
 
 export interface ICorruption {
-  marks: number;        // 0–5
-  advances: string[];   // names of corruption advances taken
+  marks: number; // 0–5
+  advances: string[]; // names of corruption advances taken
 }
 
 export interface IDebt {
   id: string;
-  to: string;           // character name or NPC name
-  description: string;  // what was owed / the story behind it
+  to: string; // character name or NPC name
+  description: string; // what was owed / the story behind it
   direction: "owed" | "owes"; // "owed" = they owe me, "owes" = I owe them
 }
 
 export interface ICharSheet {
-  id: string;           // same as player dbobj id
+  id: string; // same as player dbobj id
   playerId: string;
   playbookId: string;
   status: ChargenStatus;
@@ -130,8 +130,8 @@ export interface ICharSheet {
   notes: string;
 
   // Advancement
-  xp: number;               // 0–5; at 5 the player spends them for an advance
-  takenAdvances: string[];  // advance IDs taken
+  xp: number; // 0–5; at 5 the player spends them for an advance
+  takenAdvances: string[]; // advance IDs taken
 
   createdAt: number;
   updatedAt: number;

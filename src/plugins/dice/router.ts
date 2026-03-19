@@ -11,14 +11,19 @@ function ok(data: unknown, status = 200): Response {
 }
 
 function err(msg: string, status = 400): Response {
-  return new Response(JSON.stringify({ error: msg }), { status, headers: JSON_H });
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: JSON_H,
+  });
 }
 
 // ─── Minimal sheet-store interface ────────────────────────────────────────────
 // Using a structural type lets tests pass a plain in-memory mock.
 
 export interface SheetStore {
-  queryOne(query: Partial<ICharSheet>): Promise<ICharSheet | null | undefined | false>;
+  queryOne(
+    query: Partial<ICharSheet>,
+  ): Promise<ICharSheet | null | undefined | false>;
 }
 
 // ─── Route Handler Factory ────────────────────────────────────────────────────
@@ -61,7 +66,9 @@ export function makeDiceRouter(sheetsDb: SheetStore) {
 
       // Look up the player's sheet for their current stat value.
       // If they have no sheet yet (e.g. staff test roll), stat defaults to 0.
-      const sheet = await sheetsDb.queryOne({ id: userId } as Partial<ICharSheet>);
+      const sheet = await sheetsDb.queryOne(
+        { id: userId } as Partial<ICharSheet>,
+      );
       const statValue: number = sheet
         ? (sheet.stats[statName as StatName] ?? 0)
         : 0;

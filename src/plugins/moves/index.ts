@@ -7,7 +7,8 @@ import "./commands.ts";
 const movesPlugin: IPlugin = {
   name: "urban-shadows-moves",
   version: "1.0.0",
-  description: "Urban Shadows move resolution engine — trigger moves, roll stats, display outcomes",
+  description:
+    "Urban Shadows move resolution engine — trigger moves, roll stats, display outcomes",
 
   init: () => {
     const handler = makeMovesRouter(sheets);

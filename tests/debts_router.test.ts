@@ -12,7 +12,9 @@ function req(
   params?: Record<string, string>,
 ): Request {
   const url = new URL(`http://localhost${path}`);
-  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  }
   return new Request(url.toString(), {
     method,
     headers: body ? { "Content-Type": "application/json" } : {},
@@ -26,7 +28,9 @@ async function json(res: Response): Promise<Record<string, unknown>> {
 
 // ─── Mock stores ──────────────────────────────────────────────────────────────
 
-function makePlayerStore(players: Record<string, { flags?: string; data?: Record<string, unknown> }>): PlayerStore {
+function makePlayerStore(
+  players: Record<string, { flags?: string; data?: Record<string, unknown> }>,
+): PlayerStore {
   return {
     queryOne: (q) => {
       const id = (q as Record<string, unknown>).id as string;
@@ -41,23 +45,35 @@ const PLAYERS = makePlayerStore({
   "staff1": { flags: "player admin", data: { name: "Staffperson" } },
 });
 
-function makeDebtStore(initial: IDebtRecord[] = []): DebtStore & { _records: IDebtRecord[] } {
+function makeDebtStore(
+  initial: IDebtRecord[] = [],
+): DebtStore & { _records: IDebtRecord[] } {
   const records: IDebtRecord[] = [...initial];
 
   return {
     _records: records,
 
     query: (q?: Partial<IDebtRecord>) => {
-      if (!q || Object.keys(q).length === 0) return Promise.resolve([...records]);
-      return Promise.resolve(records.filter((r) =>
-        Object.entries(q).every(([k, v]) => (r as Record<string, unknown>)[k] === v)
-      ));
+      if (!q || Object.keys(q).length === 0) {
+        return Promise.resolve([...records]);
+      }
+      return Promise.resolve(
+        records.filter((r) =>
+          Object.entries(q).every(([k, v]) =>
+            (r as Record<string, unknown>)[k] === v
+          )
+        ),
+      );
     },
 
     queryOne: (q: Partial<IDebtRecord>) => {
-      return Promise.resolve(records.find((r) =>
-        Object.entries(q).every(([k, v]) => (r as Record<string, unknown>)[k] === v)
-      ) ?? null);
+      return Promise.resolve(
+        records.find((r) =>
+          Object.entries(q).every(([k, v]) =>
+            (r as Record<string, unknown>)[k] === v
+          )
+        ) ?? null,
+      );
     },
 
     create: (record: IDebtRecord) => {
@@ -65,9 +81,15 @@ function makeDebtStore(initial: IDebtRecord[] = []): DebtStore & { _records: IDe
       return Promise.resolve(record);
     },
 
-    modify: (q: Partial<IDebtRecord>, _op: string, update: Partial<IDebtRecord>) => {
+    modify: (
+      q: Partial<IDebtRecord>,
+      _op: string,
+      update: Partial<IDebtRecord>,
+    ) => {
       const idx = records.findIndex((r) =>
-        Object.entries(q).every(([k, v]) => (r as Record<string, unknown>)[k] === v)
+        Object.entries(q).every(([k, v]) =>
+          (r as Record<string, unknown>)[k] === v
+        )
       );
       if (idx !== -1) Object.assign(records[idx], update);
       return Promise.resolve();
@@ -75,7 +97,9 @@ function makeDebtStore(initial: IDebtRecord[] = []): DebtStore & { _records: IDe
 
     delete: (q: Partial<IDebtRecord>) => {
       const idx = records.findIndex((r) =>
-        Object.entries(q).every(([k, v]) => (r as Record<string, unknown>)[k] === v)
+        Object.entries(q).every(([k, v]) =>
+          (r as Record<string, unknown>)[k] === v
+        )
       );
       if (idx !== -1) records.splice(idx, 1);
       return Promise.resolve();
@@ -104,7 +128,11 @@ Deno.test("all routes: no userId → 401", async () => {
   const handler = makeDebtsRouter(makeDebtStore(), PLAYERS);
   const routes = [
     req("GET", "/api/v1/debts"),
-    req("POST", "/api/v1/debts", { direction: "owed", otherName: "X", description: "Y" }),
+    req("POST", "/api/v1/debts", {
+      direction: "owed",
+      otherName: "X",
+      description: "Y",
+    }),
     req("GET", "/api/v1/debts/all"),
     req("GET", "/api/v1/debts/fake-id"),
     req("PATCH", "/api/v1/debts/fake-id", { description: "new" }),
@@ -113,7 +141,11 @@ Deno.test("all routes: no userId → 401", async () => {
   ];
   for (const r of routes) {
     const res = await handler(r, null);
-    assertEquals(res.status, 401, `${r.method} ${new URL(r.url).pathname} should be 401`);
+    assertEquals(
+      res.status,
+      401,
+      `${r.method} ${new URL(r.url).pathname} should be 401`,
+    );
   }
 });
 
@@ -146,7 +178,10 @@ Deno.test("GET /api/v1/debts?direction=owed: filters to owed debts", async () =>
     seedDebt({ id: "d3", direction: "owed" }),
   ]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("GET", "/api/v1/debts", undefined, { direction: "owed" }), "p1");
+  const res = await handler(
+    req("GET", "/api/v1/debts", undefined, { direction: "owed" }),
+    "p1",
+  );
   assertEquals(res.status, 200);
   const body = await res.json() as IDebtRecord[];
   assertEquals(body.length, 2);
@@ -159,7 +194,10 @@ Deno.test("GET /api/v1/debts?direction=owes: filters to owes debts", async () =>
     seedDebt({ id: "d2", direction: "owes" }),
   ]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("GET", "/api/v1/debts", undefined, { direction: "owes" }), "p1");
+  const res = await handler(
+    req("GET", "/api/v1/debts", undefined, { direction: "owes" }),
+    "p1",
+  );
   const body = await res.json() as IDebtRecord[];
   assertEquals(body.length, 1);
   assertEquals(body[0].direction, "owes");
@@ -172,7 +210,10 @@ Deno.test("GET /api/v1/debts?active=true: returns only uncashed debts", async ()
     seedDebt({ id: "d3", cashedIn: false }),
   ]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("GET", "/api/v1/debts", undefined, { active: "true" }), "p1");
+  const res = await handler(
+    req("GET", "/api/v1/debts", undefined, { active: "true" }),
+    "p1",
+  );
   const body = await res.json() as IDebtRecord[];
   assertEquals(body.length, 2);
   assertEquals(body.every((r) => !r.cashedIn), true);
@@ -184,7 +225,10 @@ Deno.test("GET /api/v1/debts?active=false: returns only cashed-in debts", async 
     seedDebt({ id: "d2", cashedIn: true }),
   ]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("GET", "/api/v1/debts", undefined, { active: "false" }), "p1");
+  const res = await handler(
+    req("GET", "/api/v1/debts", undefined, { active: "false" }),
+    "p1",
+  );
   const body = await res.json() as IDebtRecord[];
   assertEquals(body.length, 1);
   assertEquals(body[0].cashedIn, true);
@@ -197,7 +241,13 @@ Deno.test("GET /api/v1/debts: direction + active filters combine", async () => {
     seedDebt({ id: "d3", direction: "owes", cashedIn: false }),
   ]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("GET", "/api/v1/debts", undefined, { direction: "owed", active: "true" }), "p1");
+  const res = await handler(
+    req("GET", "/api/v1/debts", undefined, {
+      direction: "owed",
+      active: "true",
+    }),
+    "p1",
+  );
   const body = await res.json() as IDebtRecord[];
   assertEquals(body.length, 1);
   assertEquals(body[0].id, "d1");
@@ -208,11 +258,14 @@ Deno.test("GET /api/v1/debts: direction + active filters combine", async () => {
 Deno.test("POST /api/v1/debts: creates a debt record", async () => {
   const store = makeDebtStore();
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "owed",
-    otherName: "Viktor",
-    description: "He owes me for the safehouse",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "owed",
+      otherName: "Viktor",
+      description: "He owes me for the safehouse",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 201);
   const body = await json(res);
   assertEquals(body.ownerId, "p1");
@@ -230,11 +283,14 @@ Deno.test("POST /api/v1/debts: creates a debt record", async () => {
 Deno.test("POST /api/v1/debts: creates 'owes' direction", async () => {
   const store = makeDebtStore();
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "owes",
-    otherName: "The Magistrate",
-    description: "I owe the Magistrate for getting me out of jail",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "owes",
+      otherName: "The Magistrate",
+      description: "I owe the Magistrate for getting me out of jail",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 201);
   const body = await json(res);
   assertEquals(body.direction, "owes");
@@ -243,12 +299,15 @@ Deno.test("POST /api/v1/debts: creates 'owes' direction", async () => {
 Deno.test("POST /api/v1/debts: optional otherId is stored", async () => {
   const store = makeDebtStore();
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "owed",
-    otherName: "Dorian",
-    otherId: "p2",
-    description: "PC-to-PC debt",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "owed",
+      otherName: "Dorian",
+      otherId: "p2",
+      description: "PC-to-PC debt",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 201);
   const body = await json(res);
   assertEquals(body.otherId, "p2");
@@ -256,41 +315,63 @@ Deno.test("POST /api/v1/debts: optional otherId is stored", async () => {
 
 Deno.test("POST /api/v1/debts: missing direction → 400", async () => {
   const handler = makeDebtsRouter(makeDebtStore(), PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    otherName: "Viktor", description: "test",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      otherName: "Viktor",
+      description: "test",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("POST /api/v1/debts: invalid direction → 400", async () => {
   const handler = makeDebtsRouter(makeDebtStore(), PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "maybe", otherName: "Viktor", description: "test",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "maybe",
+      otherName: "Viktor",
+      description: "test",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("POST /api/v1/debts: missing otherName → 400", async () => {
   const handler = makeDebtsRouter(makeDebtStore(), PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "owed", description: "test",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "owed",
+      description: "test",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("POST /api/v1/debts: blank otherName → 400", async () => {
   const handler = makeDebtsRouter(makeDebtStore(), PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "owed", otherName: "  ", description: "test",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "owed",
+      otherName: "  ",
+      description: "test",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("POST /api/v1/debts: missing description → 400", async () => {
   const handler = makeDebtsRouter(makeDebtStore(), PLAYERS);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "owed", otherName: "Viktor",
-  }), "p1");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "owed",
+      otherName: "Viktor",
+    }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
@@ -309,9 +390,14 @@ Deno.test("POST /api/v1/debts: ownerName falls back to userId when no player rec
   const noPlayerStore = makePlayerStore({});
   const store = makeDebtStore();
   const handler = makeDebtsRouter(store, noPlayerStore);
-  const res = await handler(req("POST", "/api/v1/debts", {
-    direction: "owed", otherName: "X", description: "Y",
-  }), "ghost-id");
+  const res = await handler(
+    req("POST", "/api/v1/debts", {
+      direction: "owed",
+      otherName: "X",
+      description: "Y",
+    }),
+    "ghost-id",
+  );
   assertEquals(res.status, 201);
   const body = await json(res);
   assertEquals(body.ownerName, "ghost-id");
@@ -374,7 +460,10 @@ Deno.test("PATCH /api/v1/debts/:id: updates description", async () => {
   const debt = seedDebt({ id: "d1" });
   const store = makeDebtStore([debt]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/d1", { description: "Updated context" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/d1", { description: "Updated context" }),
+    "p1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.description, "Updated context");
@@ -384,7 +473,10 @@ Deno.test("PATCH /api/v1/debts/:id: updates otherName", async () => {
   const debt = seedDebt({ id: "d1" });
   const store = makeDebtStore([debt]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/d1", { otherName: "Marcus" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/d1", { otherName: "Marcus" }),
+    "p1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.otherName, "Marcus");
@@ -394,7 +486,10 @@ Deno.test("PATCH /api/v1/debts/:id: updates otherId", async () => {
   const debt = seedDebt({ id: "d1" });
   const store = makeDebtStore([debt]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/d1", { otherId: "p2" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/d1", { otherId: "p2" }),
+    "p1",
+  );
   assertEquals(res.status, 200);
   const body = await json(res);
   assertEquals(body.otherId, "p2");
@@ -403,21 +498,30 @@ Deno.test("PATCH /api/v1/debts/:id: updates otherId", async () => {
 Deno.test("PATCH /api/v1/debts/:id: no valid fields → 400", async () => {
   const debt = seedDebt({ id: "d1" });
   const handler = makeDebtsRouter(makeDebtStore([debt]), PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/d1", { color: "red" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/d1", { color: "red" }),
+    "p1",
+  );
   assertEquals(res.status, 400);
 });
 
 Deno.test("PATCH /api/v1/debts/:id: cashed-in debt → 409", async () => {
   const debt = seedDebt({ id: "d1", cashedIn: true });
   const handler = makeDebtsRouter(makeDebtStore([debt]), PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/d1", { description: "new" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/d1", { description: "new" }),
+    "p1",
+  );
   assertEquals(res.status, 409);
 });
 
 Deno.test("PATCH /api/v1/debts/:id: not owner → 403", async () => {
   const debt = seedDebt({ id: "d1", ownerId: "p1" });
   const handler = makeDebtsRouter(makeDebtStore([debt]), PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/d1", { description: "hack" }), "p2");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/d1", { description: "hack" }),
+    "p2",
+  );
   assertEquals(res.status, 403);
 });
 
@@ -425,13 +529,19 @@ Deno.test("PATCH /api/v1/debts/:id: staff can edit", async () => {
   const debt = seedDebt({ id: "d1", ownerId: "p1" });
   const store = makeDebtStore([debt]);
   const handler = makeDebtsRouter(store, PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/d1", { description: "staff edit" }), "staff1");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/d1", { description: "staff edit" }),
+    "staff1",
+  );
   assertEquals(res.status, 200);
 });
 
 Deno.test("PATCH /api/v1/debts/:id: not found → 404", async () => {
   const handler = makeDebtsRouter(makeDebtStore(), PLAYERS);
-  const res = await handler(req("PATCH", "/api/v1/debts/no-id", { description: "x" }), "p1");
+  const res = await handler(
+    req("PATCH", "/api/v1/debts/no-id", { description: "x" }),
+    "p1",
+  );
   assertEquals(res.status, 404);
 });
 

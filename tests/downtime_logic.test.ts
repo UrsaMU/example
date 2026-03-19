@@ -1,8 +1,8 @@
 import { assertEquals, assertFalse } from "@std/assert";
 import {
-  isValidType,
-  DOWNTIME_TYPES,
   DOWNTIME_TYPE_LABELS,
+  DOWNTIME_TYPES,
+  isValidType,
 } from "../src/plugins/downtime/logic.ts";
 
 // --- DOWNTIME_TYPES ----------------------------------------------------------
@@ -70,7 +70,11 @@ Deno.test("DOWNTIME_TYPE_LABELS: no extra keys beyond DOWNTIME_TYPES", () => {
 Deno.test("DOWNTIME_TYPE_LABELS: all labels are ASCII-only", () => {
   for (const label of Object.values(DOWNTIME_TYPE_LABELS)) {
     for (const ch of label) {
-      assertEquals(ch.charCodeAt(0) <= 127, true, `Non-ASCII char in label: ${label}`);
+      assertEquals(
+        ch.charCodeAt(0) <= 127,
+        true,
+        `Non-ASCII char in label: ${label}`,
+      );
     }
   }
 });

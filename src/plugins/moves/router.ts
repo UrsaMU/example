@@ -1,5 +1,11 @@
 import type { ICharSheet } from "../playbooks/schema.ts";
-import { buildMoveIndex, findMove, getSheetMoves, resolveMove, extractStat } from "./logic.ts";
+import {
+  buildMoveIndex,
+  extractStat,
+  findMove,
+  getSheetMoves,
+  resolveMove,
+} from "./logic.ts";
 import { rollDice } from "../dice/logic.ts";
 import type { StatName } from "../dice/logic.ts";
 
@@ -12,13 +18,18 @@ function ok(data: unknown, status = 200): Response {
 }
 
 function err(msg: string, status = 400): Response {
-  return new Response(JSON.stringify({ error: msg }), { status, headers: JSON_H });
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: JSON_H,
+  });
 }
 
 // ─── Injectable store interfaces ──────────────────────────────────────────────
 
 export interface SheetStore {
-  queryOne(query: Partial<ICharSheet>): Promise<ICharSheet | null | undefined | false>;
+  queryOne(
+    query: Partial<ICharSheet>,
+  ): Promise<ICharSheet | null | undefined | false>;
 }
 
 // ─── Route Handler Factory ────────────────────────────────────────────────────
@@ -36,15 +47,15 @@ export function makeMovesRouter(sheetsDb: SheetStore) {
     req: Request,
     userId: string | null,
   ): Promise<Response> {
-    const url    = new URL(req.url);
-    const path   = url.pathname;
+    const url = new URL(req.url);
+    const path = url.pathname;
     const method = req.method;
 
     // ── GET /api/v1/moves ─────────────────────────────────────────────────────
 
     if (path === "/api/v1/moves" && method === "GET") {
       const filter = url.searchParams.get("playbook");
-      const index  = buildMoveIndex();
+      const index = buildMoveIndex();
       let moves = [...index.values()];
 
       if (filter) {
@@ -54,7 +65,7 @@ export function makeMovesRouter(sheetsDb: SheetStore) {
       return ok(
         moves.map((m) => ({
           ...m,
-          stat:      extractStat(m.description),
+          stat: extractStat(m.description),
           isPassive: !extractStat(m.description),
         })),
       );
@@ -65,14 +76,16 @@ export function makeMovesRouter(sheetsDb: SheetStore) {
     if (path === "/api/v1/moves/my" && method === "GET") {
       if (!userId) return err("Unauthorized", 401);
 
-      const sheet = await sheetsDb.queryOne({ id: userId } as Partial<ICharSheet>);
+      const sheet = await sheetsDb.queryOne(
+        { id: userId } as Partial<ICharSheet>,
+      );
       if (!sheet) return err("No sheet found", 404);
 
       const moves = getSheetMoves(sheet as ICharSheet);
       return ok(
         moves.map((m) => ({
           ...m,
-          stat:      extractStat(m.description),
+          stat: extractStat(m.description),
           isPassive: !extractStat(m.description),
         })),
       );
@@ -97,17 +110,27 @@ export function makeMovesRouter(sheetsDb: SheetStore) {
       if (!move) return err(`Move not found: ${moveId}`, 404);
 
       const bonus = typeof body.bonus === "number" ? Math.round(body.bonus) : 0;
-      const stat  = extractStat(move.description);
+      const stat = extractStat(move.description);
 
       // Passive — no roll
       if (!stat) {
-        return ok({ move, stat: null, isPassive: true, statValue: null, roll: null });
+        return ok({
+          move,
+          stat: null,
+          isPassive: true,
+          statValue: null,
+          roll: null,
+        });
       }
 
       // Look up the player's current stat value
-      const sheet     = await sheetsDb.queryOne({ id: userId } as Partial<ICharSheet>);
-      const statValue = sheet ? ((sheet as ICharSheet).stats[stat as StatName] ?? 0) : 0;
-      const roll      = rollDice(statValue, bonus);
+      const sheet = await sheetsDb.queryOne(
+        { id: userId } as Partial<ICharSheet>,
+      );
+      const statValue = sheet
+        ? ((sheet as ICharSheet).stats[stat as StatName] ?? 0)
+        : 0;
+      const roll = rollDice(statValue, bonus);
 
       return ok({ move, stat, isPassive: false, statValue, roll });
     }
@@ -121,7 +144,7 @@ export function makeMovesRouter(sheetsDb: SheetStore) {
 
       return ok({
         ...move,
-        stat:      extractStat(move.description),
+        stat: extractStat(move.description),
         isPassive: !extractStat(move.description),
       });
     }

@@ -36,9 +36,9 @@ scene to be set first.
 
 ## Quick Reference
 
-| What you want to do        | Command                         |
-|----------------------------|---------------------------------|
-| Read the current scene     | `+scene`                        |
-| Set a scene description    | `+scene/set <description>`      |
-| Set a scene title          | `+scene/title <text>`           |
-| Clear the scene            | `+scene/clear`                  |
+| What you want to do     | Command                    |
+| ----------------------- | -------------------------- |
+| Read the current scene  | `+scene`                   |
+| Set a scene description | `+scene/set <description>` |
+| Set a scene title       | `+scene/title <text>`      |
+| Clear the scene         | `+scene/clear`             |

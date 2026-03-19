@@ -1,6 +1,11 @@
 import type { ICharSheet } from "../playbooks/schema.ts";
 import { getPlaybook } from "../playbooks/data.ts";
-import { markXP, validateAdvance, applyAdvance, canTakeAdvance } from "./logic.ts";
+import {
+  applyAdvance,
+  canTakeAdvance,
+  markXP,
+  validateAdvance,
+} from "./logic.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -11,18 +16,29 @@ function ok(data: unknown, status = 200): Response {
 }
 
 function err(msg: string, status = 400): Response {
-  return new Response(JSON.stringify({ error: msg }), { status, headers: JSON_H });
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: JSON_H,
+  });
 }
 
 // ─── Injectable store interfaces ─────────────────────────────────────────────
 
 export interface SheetStore {
-  queryOne(q: Partial<ICharSheet>): Promise<ICharSheet | null | undefined | false>;
-  modify(q: Partial<ICharSheet>, op: string, update: Partial<ICharSheet>): Promise<void>;
+  queryOne(
+    q: Partial<ICharSheet>,
+  ): Promise<ICharSheet | null | undefined | false>;
+  modify(
+    q: Partial<ICharSheet>,
+    op: string,
+    update: Partial<ICharSheet>,
+  ): Promise<void>;
 }
 
 export interface PlayerStore {
-  queryOne(q: Record<string, unknown>): Promise<{ flags?: string } | null | undefined | false>;
+  queryOne(
+    q: Record<string, unknown>,
+  ): Promise<{ flags?: string } | null | undefined | false>;
 }
 
 // ─── Staff check ──────────────────────────────────────────────────────────────
@@ -43,7 +59,10 @@ async function isStaff(userId: string, players: PlayerStore): Promise<boolean> {
 //  GET    /api/v1/advancement/:id          — [staff or self] view any player's advancement
 //  PATCH  /api/v1/advancement/:id          — [staff] set xp/takenAdvances directly
 
-export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore) {
+export function makeAdvancementRouter(
+  sheetDb: SheetStore,
+  playerDb: PlayerStore,
+) {
   return async function advancementRouteHandler(
     req: Request,
     userId: string | null,
@@ -86,7 +105,9 @@ export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore
     if (path === "/api/v1/advancement/xp" && method === "POST") {
       const sheet = await loadSheet(userId);
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved to mark XP", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved to mark XP", 403);
+      }
 
       // Optional reason in body (ignored if body is missing or malformed)
       let reason: string | undefined;
@@ -98,10 +119,15 @@ export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore
       } catch { /* reason is optional */ }
 
       const currentXP = sheet.xp ?? 0;
-      if (currentXP >= 5) return err("XP already at max (5) — take an advance first", 409);
+      if (currentXP >= 5) {
+        return err("XP already at max (5) — take an advance first", 409);
+      }
 
       const newXP = markXP(currentXP);
-      await sheetDb.modify({ id: userId }, "$set", { xp: newXP, updatedAt: Date.now() });
+      await sheetDb.modify({ id: userId }, "$set", {
+        xp: newXP,
+        updatedAt: Date.now(),
+      });
       return ok({ xp: newXP, readyToAdvance: canTakeAdvance(newXP), reason });
     }
 
@@ -110,10 +136,16 @@ export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore
     if (path === "/api/v1/advancement/advance" && method === "POST") {
       const sheet = await loadSheet(userId);
       if (sheet instanceof Response) return sheet;
-      if (sheet.status !== "approved") return err("Sheet must be approved to take advances", 403);
+      if (sheet.status !== "approved") {
+        return err("Sheet must be approved to take advances", 403);
+      }
 
       let body: Record<string, unknown>;
-      try { body = await req.json(); } catch { return err("Invalid JSON"); }
+      try {
+        body = await req.json();
+      } catch {
+        return err("Invalid JSON");
+      }
 
       if (typeof body.advanceId !== "string" || !body.advanceId.trim()) {
         return err("advanceId is required");
@@ -133,21 +165,35 @@ export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore
       const validationError = validateAdvance(safeSheet, advanceId, pb);
       if (validationError) {
         const messages: Record<string, [string, number]> = {
-          "not-enough-xp":        ["Need 5 XP to take an advance",                         409],
-          "unknown-advance":      [`Unknown advance: '${advanceId}'`,                       400],
-          "major-advance-locked": ["Major advances require 5 regular advances first",       403],
-          "advance-maxed":        ["You have already taken this advance the maximum times", 409],
-          "stat-at-max":          ["That stat is already at the maximum (+2)",              409],
-          "circle-at-max":        ["That circle rating is already at the maximum",          409],
+          "not-enough-xp": ["Need 5 XP to take an advance", 409],
+          "unknown-advance": [`Unknown advance: '${advanceId}'`, 400],
+          "major-advance-locked": [
+            "Major advances require 5 regular advances first",
+            403,
+          ],
+          "advance-maxed": [
+            "You have already taken this advance the maximum times",
+            409,
+          ],
+          "stat-at-max": ["That stat is already at the maximum (+2)", 409],
+          "circle-at-max": [
+            "That circle rating is already at the maximum",
+            409,
+          ],
         };
-        const [msg, status] = messages[validationError] ?? ["Advance not allowed", 400];
+        const [msg, status] = messages[validationError] ??
+          ["Advance not allowed", 400];
         return err(msg, status);
       }
 
       const advance = pb.advances.find((a) => a.id === advanceId)!;
       const { xp, takenAdvances, stats } = applyAdvance(safeSheet, advance);
 
-      const update: Partial<ICharSheet> = { xp, takenAdvances, updatedAt: Date.now() };
+      const update: Partial<ICharSheet> = {
+        xp,
+        takenAdvances,
+        updatedAt: Date.now(),
+      };
       if (advance.statBoost) update.stats = stats;
 
       await sheetDb.modify({ id: userId }, "$set", update);
@@ -160,7 +206,9 @@ export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore
       if (!(await isStaff(userId, playerDb))) return err("Forbidden", 403);
       // We can't query all sheets easily without a full query — rely on the
       // sheet store supporting an empty query.
-      const all = await (sheetDb as unknown as { query(): Promise<ICharSheet[]> }).query();
+      const all =
+        await (sheetDb as unknown as { query(): Promise<ICharSheet[]> })
+          .query();
       return ok(all.map((s) => ({
         playerId: s.playerId,
         name: s.name,
@@ -191,7 +239,11 @@ export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore
         if (sheet instanceof Response) return sheet;
 
         let body: Record<string, unknown>;
-        try { body = await req.json(); } catch { return err("Invalid JSON"); }
+        try {
+          body = await req.json();
+        } catch {
+          return err("Invalid JSON");
+        }
 
         const update: Partial<ICharSheet> = { updatedAt: Date.now() };
         if (typeof body.xp === "number") {
@@ -199,11 +251,13 @@ export function makeAdvancementRouter(sheetDb: SheetStore, playerDb: PlayerStore
         }
         if (Array.isArray(body.takenAdvances)) {
           update.takenAdvances = (body.takenAdvances as unknown[]).filter(
-            (v) => typeof v === "string"
+            (v) => typeof v === "string",
           ) as string[];
         }
 
-        if (Object.keys(update).length === 1) return err("No valid fields to update");
+        if (Object.keys(update).length === 1) {
+          return err("No valid fields to update");
+        }
 
         await sheetDb.modify({ id: targetId }, "$set", update);
         const updated = await loadSheet(targetId);
