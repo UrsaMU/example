@@ -185,7 +185,7 @@ addCmd({
       ? `${H}Session #${number}${N} has begun: ${H}${title}${N}`
       : `${H}Session #${number}${N} has begun.`;
 
-    mu().game.broadcast(announce);
+    (await mu()).game.broadcast(announce);
     u.send(`${H}+session/start:${N}  ${G}${H}Session #${number} started.${N}`);
   },
 });
@@ -225,7 +225,7 @@ addCmd({
       },
     );
 
-    mu().game.broadcast(
+    (await mu()).game.broadcast(
       `${H}Session #${sess.number}${N} has ended. ` +
         `Use ${H}+session/questions${N} to answer end-of-session questions and earn XP!`,
     );

@@ -2,7 +2,7 @@
 //
 // Wires up commands, LangGraph graphs, hook context, and callback bridges.
 
-import type { IPlugin } from "ursamu";
+import type { IPlugin } from "ursamu/plugin";
 import { dbojs } from "ursamu";
 import { send as wsSend } from "ursamu/broadcast";
 import "./commands.ts";
@@ -167,7 +167,7 @@ const gmPlugin: IPlugin = {
           output,
           toolsUsed: [],
           timestamp: Date.now(),
-        } as Parameters<typeof gmExchanges.create>[0],
+        } as unknown as Parameters<typeof gmExchanges.create>[0],
       );
     });
 
@@ -211,7 +211,7 @@ const gmPlugin: IPlugin = {
             output,
             toolsUsed: [],
             timestamp: Date.now(),
-          } as Parameters<typeof gmExchanges.create>[0],
+          } as unknown as Parameters<typeof gmExchanges.create>[0],
         );
       },
     );
@@ -261,7 +261,7 @@ const gmPlugin: IPlugin = {
             output,
             toolsUsed: [],
             timestamp: Date.now(),
-          } as Parameters<typeof gmExchanges.create>[0],
+          } as unknown as Parameters<typeof gmExchanges.create>[0],
         );
       },
     );

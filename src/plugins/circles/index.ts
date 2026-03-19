@@ -1,4 +1,4 @@
-import type { IPlugin } from "ursamu";
+import type { IPlugin } from "ursamu/plugin";
 import { registerPluginRoute } from "ursamu/app";
 import { dbojs } from "ursamu";
 import { sheets } from "../playbooks/db.ts";

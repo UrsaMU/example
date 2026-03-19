@@ -145,7 +145,7 @@ async function adjudicateRound(
       output,
       toolsUsed: [],
       timestamp: Date.now(),
-    } as Parameters<typeof gmExchanges.create>[0],
+    } as unknown as Parameters<typeof gmExchanges.create>[0],
   );
 }
 

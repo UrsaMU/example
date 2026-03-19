@@ -210,7 +210,10 @@ addCmd({
       staffOnly: false,
       createdAt: Date.now(),
     };
-    const newComments = [...job.comments, comment as IJob["comments"][number]];
+    const newComments = [
+      ...job.comments,
+      comment as unknown as IJob["comments"][number],
+    ];
     await jobs.modify(
       { id: job.id } as Parameters<typeof jobs.modify>[0],
       "$set",
@@ -307,7 +310,7 @@ addCmd({
     };
     const newComments = [
       ...job.comments,
-      rejComment as IJob["comments"][number],
+      rejComment as unknown as IJob["comments"][number],
     ];
     const now = Date.now();
     await jobs.modify(

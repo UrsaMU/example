@@ -27,13 +27,13 @@ function err(msg: string, status = 400): Response {
 
 export interface SheetStore {
   queryOne(
-    q: Partial<ICharSheet>,
-  ): Promise<ICharSheet | null | undefined | false>;
+    q: unknown,
+  ): Promise<ICharSheet | undefined>;
   modify(
-    q: Partial<ICharSheet>,
+    q: unknown,
     op: string,
     update: Partial<ICharSheet>,
-  ): Promise<void>;
+  ): Promise<unknown>;
 }
 
 export interface PlayerStore {

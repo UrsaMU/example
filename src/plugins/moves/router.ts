@@ -27,8 +27,8 @@ function err(msg: string, status = 400): Response {
 
 export interface SheetStore {
   queryOne(
-    query: Partial<ICharSheet>,
-  ): Promise<ICharSheet | null | undefined | false>;
+    query: unknown,
+  ): Promise<ICharSheet | undefined>;
 }
 
 // ─── Route Handler Factory ────────────────────────────────────────────────────

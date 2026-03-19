@@ -24,38 +24,38 @@ function err(msg: string, status = 400): Response {
 // ─── Injectable store interfaces ──────────────────────────────────────────────
 
 export interface SessionStore {
-  query(q?: Partial<ISession>): Promise<ISession[]>;
-  queryOne(q: Partial<ISession>): Promise<ISession | null | undefined | false>;
+  query(q?: unknown): Promise<ISession[]>;
+  queryOne(q: unknown): Promise<ISession | undefined>;
   create(record: ISession): Promise<ISession>;
   modify(
-    q: Partial<ISession>,
+    q: unknown,
     op: string,
     update: Partial<ISession>,
-  ): Promise<void>;
+  ): Promise<unknown>;
 }
 
 export interface AnswerStore {
-  query(q?: Partial<ISessionAnswers>): Promise<ISessionAnswers[]>;
+  query(q?: unknown): Promise<ISessionAnswers[]>;
   queryOne(
-    q: Partial<ISessionAnswers>,
-  ): Promise<ISessionAnswers | null | undefined | false>;
+    q: unknown,
+  ): Promise<ISessionAnswers | undefined>;
   create(record: ISessionAnswers): Promise<ISessionAnswers>;
   modify(
-    q: Partial<ISessionAnswers>,
+    q: unknown,
     op: string,
     update: Partial<ISessionAnswers>,
-  ): Promise<void>;
+  ): Promise<unknown>;
 }
 
 export interface SheetStore {
   queryOne(
-    q: Partial<ICharSheet>,
-  ): Promise<ICharSheet | null | undefined | false>;
+    q: unknown,
+  ): Promise<ICharSheet | undefined>;
   modify(
-    q: Partial<ICharSheet>,
+    q: unknown,
     op: string,
     update: Partial<ICharSheet>,
-  ): Promise<void>;
+  ): Promise<unknown>;
 }
 
 export interface PlayerStore {

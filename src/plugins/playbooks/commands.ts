@@ -1056,7 +1056,7 @@ addCmd({
       >[0],
     ) as IJob[];
     const openJob = appJobs.find((j) =>
-      j.status !== "resolved" && j.status !== "closed" && j.status !== "deleted"
+      j.status !== "resolved" && j.status !== "closed"
     );
 
     if (openJob) {
@@ -1119,7 +1119,7 @@ addCmd({
       >[0],
     ) as IJob[];
     const openJob = appJobs.find((j) =>
-      j.status !== "resolved" && j.status !== "closed" && j.status !== "deleted"
+      j.status !== "resolved" && j.status !== "closed"
     );
 
     if (openJob) {

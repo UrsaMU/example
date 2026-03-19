@@ -30,27 +30,27 @@ function isCircleName(s: string): s is CircleName {
 
 export interface SheetStore {
   queryOne(
-    q: Partial<ICharSheet>,
-  ): Promise<ICharSheet | null | undefined | false>;
+    q: unknown,
+  ): Promise<ICharSheet | undefined>;
   modify(
-    q: Partial<ICharSheet>,
+    q: unknown,
     op: string,
     update: Partial<ICharSheet>,
-  ): Promise<void>;
+  ): Promise<unknown>;
 }
 
 export interface FactionStore {
   query(q?: Partial<IFactionEntry>): Promise<IFactionEntry[]>;
   queryOne(
-    q: Partial<IFactionEntry>,
-  ): Promise<IFactionEntry | null | undefined | false>;
+    q: unknown,
+  ): Promise<IFactionEntry | undefined>;
   create(record: IFactionEntry): Promise<IFactionEntry>;
   modify(
-    q: Partial<IFactionEntry>,
+    q: unknown,
     op: string,
     update: Partial<IFactionEntry>,
-  ): Promise<void>;
-  delete(q: Partial<IFactionEntry>): Promise<void>;
+  ): Promise<unknown>;
+  delete(q: unknown): Promise<unknown>;
 }
 
 export interface PlayerStore {

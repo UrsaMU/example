@@ -98,7 +98,9 @@ export const set_scene_description = new DynamicStructuredTool({
       await scenes.modify(
         { id: roomId } as Parameters<typeof scenes.modify>[0],
         "$set",
-        { title, description, updatedAt: now },
+        { title, description, updatedAt: now } as unknown as Parameters<
+          typeof scenes.modify
+        >[2],
       );
     } else {
       await scenes.create(
@@ -221,7 +223,7 @@ export const create_job = new DynamicStructuredTool({
         submitterName: "GM Agent",
         status: "new",
         createdAt: Date.now(),
-      } as Parameters<typeof jobs.create>[0],
+      } as unknown as Parameters<typeof jobs.create>[0],
     ) as Promise<{ number?: number; id?: string }>);
     return `Job filed: #${
       (job as { number?: number; id?: string }).number ??
@@ -242,7 +244,11 @@ export const approve_job = new DynamicStructuredTool({
     await jobs.modify(
       { id: jobId } as Parameters<typeof jobs.modify>[0],
       "$set",
-      { status: "resolved", resolution, resolvedAt: Date.now() },
+      {
+        status: "resolved",
+        resolution,
+        resolvedAt: Date.now(),
+      } as unknown as Parameters<typeof jobs.modify>[2],
     );
     return `Job ${jobId} resolved: ${resolution}`;
   },
@@ -260,7 +266,11 @@ export const reject_job = new DynamicStructuredTool({
     await jobs.modify(
       { id: jobId } as Parameters<typeof jobs.modify>[0],
       "$set",
-      { status: "closed", resolution: reason, resolvedAt: Date.now() },
+      {
+        status: "closed",
+        resolution: reason,
+        resolvedAt: Date.now(),
+      } as unknown as Parameters<typeof jobs.modify>[2],
     );
     return `Job ${jobId} closed: ${reason}`;
   },
@@ -295,7 +305,11 @@ export const resolve_downtime_action = new DynamicStructuredTool({
     await downtimeActions.modify(
       { id: actionId } as Parameters<typeof downtimeActions.modify>[0],
       "$set",
-      { resolved: true, outcome, resolvedAt: Date.now() },
+      {
+        resolved: true,
+        outcome,
+        resolvedAt: Date.now(),
+      } as unknown as Parameters<typeof downtimeActions.modify>[2],
     );
     return `Downtime action ${actionId} resolved.`;
   },

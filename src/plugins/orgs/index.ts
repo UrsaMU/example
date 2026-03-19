@@ -1,4 +1,4 @@
-import type { IPlugin } from "ursamu";
+import type { IPlugin } from "ursamu/plugin";
 import "./commands.ts";
 
 const orgsPlugin: IPlugin = {

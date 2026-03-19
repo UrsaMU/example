@@ -31,7 +31,7 @@ type UC = {
   me: { id: string; flags: Set<string>; name?: string };
   here: unknown;
   send: (msg: string) => void;
-  cmd: { args: string[]; switches: string[] };
+  cmd: { args: string[]; switches?: string[] };
 };
 
 function isStaff(u: UC): boolean {
@@ -469,7 +469,7 @@ addCmd({
     "  Example: +gm/oracle/likely Does Vex know about the deal?",
   pattern: /^\+gm\/oracle(?:\/([a-z-]+))?\s+(.+)$/i,
   exec: (u: UC) => {
-    const probability = (u.cmd.switches[0] ?? "50-50").toLowerCase();
+    const probability = (u.cmd.switches?.[0] ?? "50-50").toLowerCase();
     const question = u.cmd.args[0]?.trim();
     if (!question) {
       u.send(`${H}+gm/oracle:${N}  Usage: +gm/oracle[/probability] <question>`);

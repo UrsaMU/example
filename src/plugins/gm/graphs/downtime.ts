@@ -8,7 +8,7 @@ import { buildGraph, invokeGraph } from "./base.ts";
 import type { IInjectOptions } from "../context/injector.ts";
 import { buildInjectedPrompt } from "../context/injector.ts";
 import { DOWNTIME_SYSTEM_SUFFIX } from "../prompts/templates.ts";
-import type { IDowntimeAction } from "../downtime/schema.ts";
+import type { IDowntimeAction } from "../../downtime/schema.ts";
 
 export function buildDowntimeGraph(model: ChatGoogleGenerativeAI) {
   return buildGraph(model);
@@ -23,7 +23,9 @@ export function runDowntimeGraph(
   graph: ReturnType<typeof buildDowntimeGraph>,
   input: IDowntimeGraphInput,
 ): Promise<string> {
-  if (!input.actions.length) return "No open downtime actions.";
+  if (!input.actions.length) {
+    return Promise.resolve("No open downtime actions.");
+  }
 
   const systemPrompt = buildInjectedPrompt({
     ...input.opts,

@@ -4,28 +4,28 @@ import type { ChargenStatus, ICharSheet } from "./schema.ts";
 // ─── Injectable store interfaces ─────────────────────────────────────────────
 
 export interface SheetStore {
-  query(q?: Partial<ICharSheet>): Promise<ICharSheet[]>;
+  query(q?: unknown): Promise<ICharSheet[]>;
   queryOne(
-    q: Partial<ICharSheet>,
-  ): Promise<ICharSheet | null | undefined | false>;
+    q: unknown,
+  ): Promise<ICharSheet | undefined>;
   create(record: ICharSheet): Promise<ICharSheet>;
   modify(
-    q: Partial<ICharSheet>,
+    q: unknown,
     op: string,
     update: Partial<ICharSheet>,
-  ): Promise<void>;
-  delete(q: Partial<ICharSheet>): Promise<void>;
+  ): Promise<unknown>;
+  delete(q: unknown): Promise<unknown>;
 }
 
 export interface PlayerStore {
   queryOne(
-    q: Record<string, unknown>,
-  ): Promise<{ flags?: string; data?: unknown } | null | undefined | false>;
+    q: unknown,
+  ): Promise<{ flags?: string; data?: unknown } | undefined>;
   modify(
-    q: Record<string, unknown>,
+    q: unknown,
     op: string,
     update: Record<string, unknown>,
-  ): Promise<void>;
+  ): Promise<unknown>;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -263,7 +263,8 @@ export function makePlaybooksRouter(
 
       const player = await playerDb.queryOne({ id: userId });
       const playerName =
-        (player?.data as Record<string, unknown>)?.name as string || userId;
+        (player && (player.data as Record<string, unknown>)?.name as string) ||
+        userId;
 
       const sheet = makeEmptySheet(userId, playbookId, playerName);
       await sheetDb.create(sheet);

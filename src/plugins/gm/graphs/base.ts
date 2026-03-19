@@ -4,13 +4,8 @@
 // Each graph receives its full initial message list (system + human) at invoke
 // time, so system prompts are built dynamically from live game state.
 
-import {
-  Annotation,
-  END,
-  START,
-  StateGraph,
-  ToolNode,
-} from "@langchain/langgraph";
+import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
 import type { BaseMessage } from "@langchain/core/messages";
 import {
   AIMessage,

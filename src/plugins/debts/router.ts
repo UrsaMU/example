@@ -20,26 +20,21 @@ function err(msg: string, status = 400): Response {
 export interface DebtStore {
   query(q?: Partial<IDebtRecord>): Promise<IDebtRecord[]>;
   queryOne(
-    q: Partial<IDebtRecord>,
-  ): Promise<IDebtRecord | null | undefined | false>;
+    q: unknown,
+  ): Promise<IDebtRecord | undefined>;
   create(record: IDebtRecord): Promise<IDebtRecord>;
   modify(
-    q: Partial<IDebtRecord>,
+    q: unknown,
     op: string,
     update: Partial<IDebtRecord>,
-  ): Promise<void>;
-  delete(q: Partial<IDebtRecord>): Promise<void>;
+  ): Promise<unknown>;
+  delete(q: unknown): Promise<unknown>;
 }
 
 export interface PlayerStore {
   queryOne(
-    q: Record<string, unknown>,
-  ): Promise<
-    | { flags?: string; data?: Record<string, unknown> }
-    | null
-    | undefined
-    | false
-  >;
+    q: unknown,
+  ): Promise<{ flags?: string; data?: Record<string, unknown> } | undefined>;
 }
 
 // ─── Staff check ──────────────────────────────────────────────────────────────
@@ -117,7 +112,7 @@ export function makeDebtsRouter(debtDb: DebtStore, playerDb: PlayerStore) {
 
       // Resolve the owner's display name from their dbobj
       const player = await playerDb.queryOne({ id: userId });
-      const ownerName = (player?.data?.name as string) || userId;
+      const ownerName = (player && (player.data?.name as string)) || userId;
 
       const now = Date.now();
       const record: IDebtRecord = {
