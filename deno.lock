@@ -5,11 +5,14 @@
     "jsr:@std/dotenv@0.224": "0.224.2",
     "jsr:@std/encoding@0.224.0": "0.224.0",
     "jsr:@std/flags@0.224": "0.224.0",
+    "jsr:@std/fmt@0.224": "0.224.0",
     "jsr:@std/fs@0.224": "0.224.0",
     "jsr:@std/fs@0.224.0": "0.224.0",
+    "jsr:@std/internal@0.224": "0.224.0",
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/path@0.224.0": "0.224.0",
     "jsr:@ursamu/ursamu@1.5.0": "1.5.0",
+    "jsr:@ursamu/ursamu@1.5.6": "1.5.6",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@deno/sandbox@0.10.0": "0.10.0",
     "npm:@digibear/tags@1.0.0": "1.0.0",
@@ -28,7 +31,11 @@
   },
   "jsr": {
     "@std/assert@0.224.0": {
-      "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f"
+      "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f",
+      "dependencies": [
+        "jsr:@std/fmt",
+        "jsr:@std/internal"
+      ]
     },
     "@std/dotenv@0.224.2": {
       "integrity": "29081695357e4534696c9e986b2560be29c141ccf52daa32b6c20ff5b5c64ab9"
@@ -42,11 +49,20 @@
         "jsr:@std/assert"
       ]
     },
+    "@std/fmt@0.224.0": {
+      "integrity": "e20e9a2312a8b5393272c26191c0a68eda8d2c4b08b046bad1673148f1d69851"
+    },
     "@std/fs@0.224.0": {
       "integrity": "52a5ec89731ac0ca8f971079339286f88c571a4d61686acf75833f03a89d8e69",
       "dependencies": [
         "jsr:@std/assert",
         "jsr:@std/path@0.224"
+      ]
+    },
+    "@std/internal@0.224.0": {
+      "integrity": "afc50644f9cdf4495eeb80523a8f6d27226b4b36c45c7c195dfccad4b8509291",
+      "dependencies": [
+        "jsr:@std/fmt"
       ]
     },
     "@std/path@0.224.0": {
@@ -57,6 +73,24 @@
     },
     "@ursamu/ursamu@1.5.0": {
       "integrity": "f1ba3c39f00c6594e59c4a805df83d03255f469ba81477914aca5de7c72f32e7",
+      "dependencies": [
+        "jsr:@std/dotenv",
+        "jsr:@std/fs@0.224.0",
+        "jsr:@std/path@0.224",
+        "jsr:@std/path@0.224.0",
+        "jsr:@zaubrik/djwt",
+        "npm:@deno/sandbox",
+        "npm:@digibear/tags",
+        "npm:@ursamu/parser",
+        "npm:bcryptjs",
+        "npm:discordeno",
+        "npm:lodash",
+        "npm:quickjs-emscripten",
+        "npm:sucrase"
+      ]
+    },
+    "@ursamu/ursamu@1.5.6": {
+      "integrity": "8b12de92ea713f16c3fb0ee6527e160bf545c59ccd07f4d613fcf350591dcf18",
       "dependencies": [
         "jsr:@std/dotenv",
         "jsr:@std/flags",
@@ -666,6 +700,7 @@
       "jsr:@std/fs@0.224",
       "jsr:@std/path@0.224",
       "jsr:@ursamu/ursamu@1.5.0",
+      "jsr:@ursamu/ursamu@1.5.6",
       "jsr:@zaubrik/djwt@^3.0.2",
       "npm:@digibear/tags@1.0.0",
       "npm:@langchain/core@0.3",

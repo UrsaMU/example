@@ -1,9 +1,9 @@
 {
   "tasks": {
     "start": "bash ./scripts/run.sh",
-    "server": "deno run -A --unstable-detect-cjs --unstable-kv ./src/main.ts",
+    "server": "deno run -A --watch --unstable-detect-cjs --unstable-kv ./src/main.ts",
     "telnet": "deno run -A --unstable-detect-cjs --unstable-kv ./src/telnet.ts",
-    "test": "deno test --allow-all --unstable-kv --no-check tests/ src/services/Intents/ src/services/Sandbox/ src/plugins/events/",
+    "test": "deno test --allow-all --unstable-kv --no-check",
     "daemon": "bash ./scripts/daemon.sh",
     "stop": "bash ./scripts/stop.sh",
     "restart": "bash ./scripts/restart.sh",
@@ -17,10 +17,12 @@
     "install-cli": "deno install --allow-all --name ursamu --global --force ./src/cli/ursamu.ts",
     "upgrade": "deno run -A ./src/cli/ursamu.ts update",
     "upgrade:reload": "deno run -A ./src/cli/ursamu.ts update && deno run --reload -A --unstable-detect-cjs --unstable-kv ./src/main.ts",
-    "test:coverage": "deno test --allow-all --unstable-kv --no-check --coverage=coverage && deno coverage coverage --lcov > coverage/lcov.info && deno coverage coverage"
+    "test:coverage": "deno test --allow-all --unstable-kv --no-check --coverage=coverage && deno coverage coverage --lcov > coverage/lcov.info && deno coverage coverage",
+    "dev": "bash ./scripts/run.sh",
+    "update": "deno run -A jsr:@ursamu/ursamu/cli update"
   },
   "imports": {
-    "ursamu": "jsr:@ursamu/ursamu@1.5.0",
+    "ursamu": "jsr:@ursamu/ursamu@1.5.6",
     "ursamu/app": "jsr:@ursamu/ursamu@1.5.0/app",
     "ursamu/jobs": "jsr:@ursamu/ursamu@1.5.0/jobs",
     "ursamu/plugin": "./src/types/plugin.ts",
